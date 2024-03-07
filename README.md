@@ -1,19 +1,24 @@
 ## Introduction
 
-**emc/cancermicro** is a bioinformatics pipeline that ...
+**emc/cancermicro** is a bioinformatics pipeline that can be used to analyse bacterial reads obtained from RNA sequencing of human tumour material. It takes a samplesheet and FASTQ files as input, performs quality control, removes human reads and taxonomically classifies the detected bacterial reads. It produces a quality control report and a bacterial abundance matrix.
 
 <!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
+   Check if output is still up to date.
 -->
+
 
 <!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
      workflows use the "tube map" design for that. See https://nf-co.re/docs/contributing/design_guidelines#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
+
+<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline
+Check if tools are still up to date. -->
 
 1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+2. Read QC([`fastp`](https://github.com/OpenGene/fastp))
+3. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+4. Initial host-depletion ([`bowtie2`](https://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
+5. Second host-depletion ([`BWA-MEM2`](https://github.com/bwa-mem2/bwa-mem2))
+6. Classification ([`kraken2`](https://ccb.jhu.edu/software/kraken2/))
 
 ## Usage
 
@@ -57,25 +62,17 @@ emc/cancermicro was originally written by Birgit Rijvers.
 
 We thank the following people for their extensive assistance in the development of this pipeline:
 
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+<!-- TODO nf-core: If applicable, make list of people who have also contributed. Remove if not -->
 
-## Contributions and Support
-
-If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
 
 ## Citations
 
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use emc/cancermicro for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
-
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
+<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline to CITATIONS.MD file -->
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
 This pipeline uses code and infrastructure developed and maintained by the [nf-core](https://nf-co.re) community, reused here under the [MIT license](https://github.com/nf-core/tools/blob/master/LICENSE).
 
-> **The nf-core framework for community-curated bioinformatics pipelines.**
->
-> Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
->
+**The nf-core framework for community-curated bioinformatics pipelines.**
+Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
 > _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).

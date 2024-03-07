@@ -1,0 +1,108 @@
+<!--
+  ~ Copyright 2013-2023, Seqera Labs
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<html>
+<head>
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+</head>
+<body>
+<pre class="mermaid" style="text-align: center;">
+flowchart TB
+    subgraph " "
+    v2["channel.fromSamplesheet"]
+    v15["adapter_fasta"]
+    v16["save_trimmed_fail"]
+    v17["save_merged"]
+    v28["Channel.fromPath"]
+    v29["save_unaligned"]
+    v30["sort_bam"]
+    v39["Channel.of"]
+    v42["Channel.fromPath"]
+    v45["ch_workflow_summary"]
+    v49["ch_methods_description"]
+    end
+    subgraph EMC_CANCERMICRO
+    subgraph CANCERMICRO
+    v9([FASTQC])
+    v18([FASTP])
+    v31([BOWTIE2_ALIGN])
+    v56([MULTIQC])
+    v3(( ))
+    v11(( ))
+    v53(( ))
+    v54(( ))
+    v55(( ))
+    v60(( ))
+    end
+    end
+    subgraph " "
+    v10[" "]
+    v19[" "]
+    v20[" "]
+    v21[" "]
+    v22[" "]
+    v23[" "]
+    v32[" "]
+    v33[" "]
+    v34[" "]
+    v35[" "]
+    v57[" "]
+    v58[" "]
+    v59[" "]
+    v61["multiqc_report"]
+    end
+    v2 --> v3
+    v3 --> v9
+    v9 --> v10
+    v9 --> v11
+    v15 --> v18
+    v16 --> v18
+    v17 --> v18
+    v3 --> v18
+    v18 --> v23
+    v18 --> v22
+    v18 --> v21
+    v18 --> v20
+    v18 --> v19
+    v18 --> v11
+    v28 --> v31
+    v29 --> v31
+    v30 --> v31
+    v3 --> v31
+    v31 --> v35
+    v31 --> v34
+    v31 --> v33
+    v31 --> v32
+    v39 --> v11
+    v42 --> v53
+    v45 --> v11
+    v49 --> v11
+    v11 --> v56
+    v53 --> v56
+    v54 --> v56
+    v55 --> v56
+    v56 --> v59
+    v56 --> v58
+    v56 --> v57
+    v56 --> v60
+    v60 --> v61
+
+</pre>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true });
+</script>
+</body>
+</html>
