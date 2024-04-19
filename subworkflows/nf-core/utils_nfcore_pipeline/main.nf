@@ -154,35 +154,16 @@ def paramsSummaryMultiqc(summary_params) {
 //
 // nf-core logo
 //
-// def nfCoreLogo(monochrome_logs=true) {
-//     Map colors = logColours(monochrome_logs)
-//     String.format(
-//         """\n
-//         ${dashedLine(monochrome_logs)}
-//                                                 ${colors.green},--.${colors.black}/${colors.green},-.${colors.reset}
-//         ${colors.blue}        ___     __   __   __   ___     ${colors.green}/,-._.--~\'${colors.reset}
-//         ${colors.blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${colors.yellow}}  {${colors.reset}
-//         ${colors.blue}  | \\| |       \\__, \\__/ |  \\ |___     ${colors.green}\\`-._,-`-,${colors.reset}
-//                                                 ${colors.green}`._,._,\'${colors.reset}
-//         ${colors.purple}  ${workflow.manifest.name} ${getWorkflowVersion()}${colors.reset}
-//         ${dashedLine(monochrome_logs)}
-//         """.stripIndent()
-//     )
-// }
-
-//
-// emc-canmic logo
-//
 def nfCoreLogo(monochrome_logs=true) {
     Map colors = logColours(monochrome_logs)
     String.format(
         """\n
         ${dashedLine(monochrome_logs)}
-        ${colors.green}  _____ __  __  ____       ____            __  __ _      ${colors.reset}
-        ${colors.blue} | ____|  \\/  |/ ___|     / ___|__ _ _ __ |  \\/  (_) ___ ${colors.reset}
-        ${colors.blue} |  _| | |\\/| | |   _____| |   / _` | '_ \\| |\\/| | |/ __|${colors.reset}
-        ${colors.blue} | |___| |  | | |__|_____| |__| (_| | | | | |  | | | (__ ${colors.reset}
-        ${colors.green} |_____|_|  |_|\\____|     \\____\\__,_|_| |_|_|  |_|_|\\___|${colors.reset}
+                                                ${colors.green},--.${colors.black}/${colors.green},-.${colors.reset}
+        ${colors.blue}        ___     __   __   __   ___     ${colors.green}/,-._.--~\'${colors.reset}
+        ${colors.blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${colors.yellow}}  {${colors.reset}
+        ${colors.blue}  | \\| |       \\__, \\__/ |  \\ |___     ${colors.green}\\`-._,-`-,${colors.reset}
+                                                ${colors.green}`._,._,\'${colors.reset}
         ${colors.purple}  ${workflow.manifest.name} ${getWorkflowVersion()}${colors.reset}
         ${dashedLine(monochrome_logs)}
         """.stripIndent()

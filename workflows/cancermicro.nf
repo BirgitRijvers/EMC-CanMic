@@ -4,10 +4,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { FASTP }                  from '../modules/nf-core/fastp/main'
 include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
-include { BOWTIE2_ALIGN          } from '../modules/nf-core/bowtie2/align/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -37,38 +35,7 @@ workflow CANCERMICRO {
     )
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
-    
-    //
-    // MODULE: Run Fastp
-    //
-    FASTP (
-        ch_samplesheet,
-        [],
-        false,
-        false
-    )
-    ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]})
-    ch_versions = ch_versions.mix(FASTP.out.versions.first())
 
-    //
-    // Bowtie2 index
-    //
-    if (params.index) {
-        ch_index = Channel.fromPath(params.index)
-    } else {
-        exit 1, "Bowtie2 index file not provided. Please specify the path with --index."
-    }
-
-    //
-    // MODULE: Run Bowtie2 align
-    //
-    BOWTIE2_ALIGN (
-        ch_samplesheet,
-        ch_index,
-        true,
-        false
-    )
-    
     //
     // Collate and save software versions
     //
