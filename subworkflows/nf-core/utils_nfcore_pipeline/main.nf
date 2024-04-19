@@ -158,17 +158,32 @@ def nfCoreLogo(monochrome_logs=true) {
     Map colors = logColours(monochrome_logs)
     String.format(
         """\n
+        ${colors.bigreen}
+        ${colors.blink}
         ${dashedLine(monochrome_logs)}
-                                                ${colors.green},--.${colors.black}/${colors.green},-.${colors.reset}
-        ${colors.blue}        ___     __   __   __   ___     ${colors.green}/,-._.--~\'${colors.reset}
-        ${colors.blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${colors.yellow}}  {${colors.reset}
-        ${colors.blue}  | \\| |       \\__, \\__/ |  \\ |___     ${colors.green}\\`-._,-`-,${colors.reset}
-                                                ${colors.green}`._,._,\'${colors.reset}
-        ${colors.purple}  ${workflow.manifest.name} ${getWorkflowVersion()}${colors.reset}
+        ${colors.reset}
+        ${colors.bicyan}  _____ __  __  ____       ____            __  __ _      ${colors.reset}
+        ${colors.bicyan} | ____|  \\/  |/ ___|     / ___|__ _ _ __ |  \\/  (_) ___ ${colors.reset}
+        ${colors.bicyan} |  _| | |\\/| | |   _____| |   / _` | '_ \\| |\\/| | |/ __|${colors.reset}
+        ${colors.bicyan} | |___| |  | | |__|_____| |__| (_| | | | | |  | | | (__ ${colors.reset}
+        ${colors.bicyan} |_____|_|  |_|\\____|     \\____\\__,_|_| |_|_|  |_|_|\\___|${colors.reset}
+        ${colors.bpurple}  ${workflow.manifest.name} ${getWorkflowVersion()}${colors.reset}
+        ${colors.bigreen}
+        ${colors.blink}
         ${dashedLine(monochrome_logs)}
+        ${colors.reset}
         """.stripIndent()
     )
 }
+
+//
+// nf-core logo (replaced by emc-canmic logo)
+//
+//                                         ${colors.green},--.${colors.black}/${colors.green},-.${colors.reset}
+        // ${colors.blue}        ___     __   __   __   ___     ${colors.green}/,-._.--~\'${colors.reset}
+        // ${colors.blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${colors.yellow}}  {${colors.reset}
+        // ${colors.blue}  | \\| |       \\__, \\__/ |  \\ |___     ${colors.green}\\`-._,-`-,${colors.reset}
+        //                                         ${colors.green}`._,._,\'${colors.reset}
 
 //
 // Return dashed line
