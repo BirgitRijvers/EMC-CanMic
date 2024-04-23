@@ -1,15 +1,39 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
+    IMPORT MODULES
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
+include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_cancermicro_pipeline'
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    IMPORT LOCAL MODULES/SUBWORKFLOWS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+
+// include { PREPARE_GENOME     } from '../subworkflows/local/prepare_genome'
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    VALIDATE PARAMS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+// if(params.fasta){
+//     ch_fasta = Channel.fromPath(params.fasta, checkIfExists: true).collect()
+//         .map{ it -> [[id:it[0].getSimpleName()], it[0]]}
+// }
+
+// Alternative code
+// fasta = Channel.fromPath(params.fasta).map { file -> [['id': 'identifier'], file] }
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -27,6 +51,18 @@ workflow CANCERMICRO {
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
 
+    ch_bwamem2_index = Channel.empty()
+    // ch_bwamem2_index = Channel.of([[id:'input_genome_index'],params.bwamem2_index])
+    ch_bwamem2_index = Channel.value([[id:'input_genome_index'], params.bwamem2_index])
+    ch_bwamem2_index.view()
+
+    ch_fasta = Channel.empty()
+    // ch_fasta = Channel.of([[id:'input_genome_fasta'],params.fasta])
+    ch_fasta = Channel.value([[id:'input_genome_fasta'], params.fasta])
+    ch_fasta.view()
+
+    reports = Channel.empty()
+    
     //
     // MODULE: Run Fastp
     //
@@ -38,7 +74,31 @@ workflow CANCERMICRO {
     )
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]})
     ch_versions = ch_versions.mix(FASTP.out.versions.first())
+    // reports = reports.mix(FASTP.out.json.collect{ meta, json -> json })
+    // reports = reports.mix(FASTP.out.html.collect{ meta, html -> html })
     
+    // Create a new channel for the fastq.gz files
+    ch_fastp_reads = FASTP.out.reads
+    ch_fastp_reads.view()
+
+    // //
+    // // SUBWORKFLOW: Index the genome 
+    // //
+    // PREPARE_GENOME(
+    //     ch_fasta
+    // )
+    // ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
+
+    //
+    // MODULE: Run BWA-MEM2
+    //
+    BWAMEM2_MEM (
+        FASTP.out.reads,
+        ch_bwamem2_index,
+        ch_fasta,
+        false
+    )
+
     //
     // Collate and save software versions
     //
