@@ -7,6 +7,7 @@
 include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
+include { SAMTOOLS_VIEW          } from '../modules/nf-core/samtools/view/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -17,7 +18,6 @@ include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_canc
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
 
 // include { PREPARE_GENOME     } from '../subworkflows/local/prepare_genome'
 /*
@@ -74,8 +74,8 @@ workflow CANCERMICRO {
     )
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]})
     ch_versions = ch_versions.mix(FASTP.out.versions.first())
-    // reports = reports.mix(FASTP.out.json.collect{ meta, json -> json })
-    // reports = reports.mix(FASTP.out.html.collect{ meta, html -> html })
+    reports = reports.mix(FASTP.out.json.collect{ meta, json -> json })
+    reports = reports.mix(FASTP.out.html.collect{ meta, html -> html })
     
     // Create a new channel for the fastq.gz files
     ch_fastp_reads = FASTP.out.reads
@@ -98,6 +98,14 @@ workflow CANCERMICRO {
         ch_fasta,
         false
     )
+    ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions.first())
+    // //
+    // // MODULE: Run Samtools view
+    // //
+    // SAMTOOLS_VIEW (
+    //     BWAMEM2_MEM.out.sam
+    //     [args: '-h -f12']
+    // )
 
     //
     // Collate and save software versions

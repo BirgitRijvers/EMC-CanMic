@@ -32,7 +32,8 @@ process BWAMEM2_MEM {
 
     def extension_pattern = /(--output-fmt|-O)+\s+(\S+)/
     def extension_matcher =  (args2 =~ extension_pattern)
-    def extension = extension_matcher.getCount() > 0 ? extension_matcher[0][2].toLowerCase() : "bam"
+    // def extension = extension_matcher.getCount() > 0 ? extension_matcher[0][2].toLowerCase() : "bam"
+    def extension = extension_matcher.getCount() > 0 ? extension_matcher[0][2].toLowerCase() : "sam"
     def reference = fasta && extension=="cram"  ? "--reference ${fasta}" : ""
     if (!fasta && extension=="cram") error "Fasta reference is required for CRAM output"
 
@@ -45,7 +46,7 @@ process BWAMEM2_MEM {
         -t $task.cpus \\
         \$INDEX \\
         $reads \\
-        | samtools $samtools_command $args2 -@ $task.cpus ${reference} -o ${prefix}.${extension} -
+        | samtools $samtools_command $args2 -h -f12 -@ $task.cpus ${reference} -o ${prefix}.${extension} -
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
