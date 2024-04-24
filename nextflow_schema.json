@@ -192,7 +192,7 @@
                 },
                 "bwamem2_index": {
                     "type": "string",
-                    "default": "/home/birgit/data/db_index/bwa-mem2/human/human",
+                    "default": "/mnt/FS2/data_2/Users/Birgit/db_index/bwa-mem2/",
                     "description": "Path to bwa-mem2 indexes",
                     "format": "directory-path"
                 },
@@ -204,7 +204,7 @@
                     "description": "Path to FASTA genome file.",
                     "help_text": "If you don't have a BWA index available this will be generated for you automatically.",
                     "fa_icon": "far fa-file-code",
-                    "default": "/home/birgit/data/GRCh38/GRCh38.fna.gz"
+                    "default": "/mnt/FS2/data_2/Users/Birgit/GRCh38/GRCh38.fna.gz"
                 },
                 "outdir": {
                     "type": "string",
@@ -240,5 +240,11 @@
         {
             "$ref": "#/definitions/input_output_options"
         }
-    ]
+    ],
+    "properties": {
+        "kraken2_db": {
+            "type": "string",
+            "default": "/mnt/FS2/data_2/Users/Birgit/db_index/kraken2/standard/"
+        }
+    }
 }

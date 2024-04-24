@@ -8,6 +8,8 @@ include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
 include { SAMTOOLS_VIEW          } from '../modules/nf-core/samtools/view/main'
+include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
+include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -61,6 +63,11 @@ workflow CANCERMICRO {
     ch_fasta = Channel.value([[id:'input_genome_fasta'], params.fasta])
     ch_fasta.view()
 
+    ch_kraken2_db = Channel.empty()
+    // ch_bwamem2_index = Channel.of([[id:'input_genome_index'],params.bwamem2_index])
+    ch_kraken2_db = Channel.value([params.kraken2_db])
+    ch_kraken2_db.view()
+
     reports = Channel.empty()
     
     //
@@ -99,6 +106,7 @@ workflow CANCERMICRO {
         false
     )
     ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions.first())
+    
     // //
     // // MODULE: Run Samtools view
     // //
@@ -106,6 +114,25 @@ workflow CANCERMICRO {
     //     BWAMEM2_MEM.out.sam
     //     [args: '-h -f12']
     // )
+
+    //
+    // MODULE: Run Samtools fastq
+    //
+    SAMTOOLS_FASTQ (
+        BWAMEM2_MEM.out.sam,
+        false
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions.first())
+    //
+    // MODULE: Run Kraken2
+    //
+    KRAKEN2_KRAKEN2 (
+        SAMTOOLS_FASTQ.out.fastq,
+        ch_kraken2_db,
+        false,
+        false
+    )
+    ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions.first())
 
     //
     // Collate and save software versions
