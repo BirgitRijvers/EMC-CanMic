@@ -1,11 +1,9 @@
 ## Introduction
 
-**emc/cancermicro** is a bioinformatics pipeline that ...
+**emc/cancermicro** is a bioinformatics pipeline that helps with analyzing the microbiome within RNA sequencing data, obtained from humans. As input it requires a samplesheet and paired-end FASTQ files, it performs quality control and trimming on the reads, filters out reads mapping to human reference genome GRCh38 and taxonomically classifies the remaining reads. As output, you get a BIOM file with the classifications and a MultiQC report of the QC metrics.
 
 <!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
+Update introduction as pipeline changes!
 -->
 
 <!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
@@ -14,6 +12,12 @@
 
 1. Read QC ([`Fastp`](https://github.com/OpenGene/fastp))
 2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+3. Filter out reads mapping to GRCh38 ([`BWA-MEM2`](https://github.com/bwa-mem2/bwa-mem2) and [`Samtools`](https://www.htslib.org/doc/samtools-view.html))
+4. Convert SAM file to FASTQ ([`Samtool`](https://www.htslib.org/doc/samtools-fasta.html))
+5. Taxonomic classification ([`Kraken2`](https://github.com/DerrickWood/kraken2))
+6. Re-estimation of abundances ([`Bracken`](https://github.com/jenniferlu717/Bracken))
+7. Convert Kreport to BIOM ([`Kraken-biom`](https://github.com/smdabdoub/kraken-biom))
+8. Import data to QIIME2 ([`QIIME2`](https://qiime2.org/))
 
 ## Usage
 
@@ -26,10 +30,10 @@ First, prepare a samplesheet with your input data that looks as follows:
 
 ```csv
 sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+CONTROL_1, BR_PVP_0705_R1.fastq.gz, BR_PVP_0705_R2.fastq.gz
 ```
 
-Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
+Each row represents a pair of fastq files.
 
 
 Now, you can run the pipeline using:
@@ -40,7 +44,9 @@ Now, you can run the pipeline using:
 nextflow run emc/cancermicro \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
-   --outdir <OUTDIR>
+   --outdir <OUTDIR> \
+   --bwamem2_index <path/to/bwamem2_index/directory/> \
+   --kraken2_db <path/to/kraken2_database/directory/>
 ```
 
 > [!WARNING]
@@ -51,13 +57,14 @@ nextflow run emc/cancermicro \
 
 emc/cancermicro was originally written by Birgit Rijvers.
 
-We thank the following people for their extensive assistance in the development of this pipeline:
+We thank the following people for their assistance in the development of this pipeline:
+- Willem de Koning
 
 <!-- TODO nf-core: If applicable, make list of people who have also contributed -->
 
-## Contributions and Support
+## Support
+If you have questions or issues while using this pipeline, please create an issue in this repository.
 
-If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
 
 ## Citations
 
