@@ -10,7 +10,9 @@ include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
 include { SAMTOOLS_VIEW          } from '../modules/nf-core/samtools/view/main'
 include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
 include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
-include { KRAKENBIOM             } from '../modules/local/krakenbiom/main.nf'
+// include { KRAKENBIOM             } from '../modules/local/krakenbiom/main.nf'
+include { KRAKENBIOM as KRAKENBIOM_KR } from '../modules/local/krakenbiom/main.nf'
+include { KRAKENBIOM as KRAKENBIOM_BR } from '../modules/local/krakenbiom/main.nf'
 include { BRACKEN_BUILD          } from '../modules/nf-core/bracken/build/main'
 include { BRACKEN_BRACKEN        } from '../modules/nf-core/bracken/bracken/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
@@ -134,6 +136,7 @@ workflow CANCERMICRO {
     //
     // MODULE: Run Kraken2
     //
+    // Confidence set to --confidence 0.05 in modules.config
     KRAKEN2_KRAKEN2 (
         // ch_samplesheet,
         SAMTOOLS_FASTQ.out.fastq,
@@ -165,11 +168,25 @@ workflow CANCERMICRO {
         ch_kraken2_db
     )
 
+    // // MODULE: Run Kraken-biom to create biom file for each kreport
+    // KRAKENBIOM (
+    //     KRAKEN2_KRAKEN2.out.report,
+    // )
+    // ch_versions = ch_versions.mix(KRAKENBIOM.out.versions.first())
+
     // MODULE: Run Kraken-biom to create biom file for each kreport
-    KRAKENBIOM (
+    KRAKENBIOM_KR (
         KRAKEN2_KRAKEN2.out.report,
+        "kraken2"
     )
-    ch_versions = ch_versions.mix(KRAKENBIOM.out.versions.first())
+    ch_versions = ch_versions.mix(KRAKENBIOM_KR.out.versions.first())
+
+    // MODULE: Run Kraken-biom to create biom file for each BRACKEN kreport
+    KRAKENBIOM_BR (
+        BRACKEN_BRACKEN.out.reports,
+        "bracken"
+    )
+    ch_versions = ch_versions.mix(KRAKENBIOM_BR.out.versions.first())
 
     //
     // Collate and save software versions

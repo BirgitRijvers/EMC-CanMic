@@ -10,6 +10,7 @@ process KRAKENBIOM {
 
     input:
     tuple val(meta), path(kreport)
+    val(tool) // Usefull for when using module twice
     // path  kreports, stageAs: "?/*"
     // Input looks like: 
     // [['id':'1643_sub', 'single_end':false], '/home/birgit/work/25/7b0c04a7c6c86d6a0c41986e3b220f/1643_sub.kraken2.report.txt'],
@@ -17,8 +18,8 @@ process KRAKENBIOM {
     // [['id':'1592_sub', 'single_end':false], '/home/birgit/work/8e/a86503f289b00e60862e83643b86d9/1592_sub.kraken2.report.txt']
 
     output:
-    path "*classified.biom"       , emit: biom
-    path "versions.yml"           , emit: versions
+    path "*_classified.biom" , emit: biom
+    path "versions.yml"                      , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -33,7 +34,7 @@ process KRAKENBIOM {
     kraken-biom \\
         $kreport \\
         $args \\
-        -o ${prefix}_classified.biom \\
+        -o ${prefix}_${tool}_classified.biom \\
         $args
 
     cat <<-END_VERSIONS > versions.yml
