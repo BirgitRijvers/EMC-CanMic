@@ -1,6 +1,6 @@
 ## Introduction
 
-**emc/cancermicro** is a bioinformatics pipeline that helps with analyzing the microbiome within RNA sequencing data, obtained from humans. As input it requires a samplesheet and paired-end FASTQ files, it performs quality control and trimming on the reads, filters out reads mapping to human reference genome GRCh38 and taxonomically classifies the remaining reads. As output, you get a BIOM file with the classifications and a MultiQC report of the QC metrics.
+**emc/cancermicro** is a ***WORK IN PROGRESS*** bioinformatics pipeline that helps with analyzing the microbiome within RNA sequencing data, obtained from humans. As input it requires a samplesheet and paired-end FASTQ files, it performs quality control and trimming on the reads, filters out reads mapping to human reference genome GRCh38 and taxonomically classifies the remaining reads. As output, you get a BIOM file with the classifications and a MultiQC report of the QC metrics.
 
 <!-- TODO nf-core:
 Update introduction as pipeline changes!
