@@ -10,6 +10,9 @@ include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
 include { SAMTOOLS_VIEW          } from '../modules/nf-core/samtools/view/main'
 include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
 include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
+include { KRAKENBIOM             } from '../modules/local/krakenbiom/main.nf'
+include { BRACKEN_BUILD          } from '../modules/nf-core/bracken/build/main'
+include { BRACKEN_BRACKEN        } from '../modules/nf-core/bracken/bracken/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -56,20 +59,25 @@ workflow CANCERMICRO {
     ch_bwamem2_index = Channel.empty()
     // ch_bwamem2_index = Channel.of([[id:'input_genome_index'],params.bwamem2_index])
     ch_bwamem2_index = Channel.value([[id:'input_genome_index'], params.bwamem2_index])
-    ch_bwamem2_index.view()
+    
+    // Create tuple channel for kraken2 db for bracken
+    // ch_kraken2_bracken_db = Channel.empty()
+    // ch_kraken2_bracken_db = Channel.value([params.kraken2_db])
+
+    ch_bracken_index = Channel.empty()
+    ch_bracken_index = Channel.value([[id:'kr_db_br'], params.kraken2_db])
 
     ch_fasta = Channel.empty()
     // ch_fasta = Channel.of([[id:'input_genome_fasta'],params.fasta])
     ch_fasta = Channel.value([[id:'input_genome_fasta'], params.fasta])
-    ch_fasta.view()
+
 
     ch_kraken2_db = Channel.empty()
     // ch_bwamem2_index = Channel.of([[id:'input_genome_index'],params.bwamem2_index])
     ch_kraken2_db = Channel.value([params.kraken2_db])
-    ch_kraken2_db.view()
 
     reports = Channel.empty()
-    
+
     //
     // MODULE: Run Fastp
     //
@@ -84,20 +92,19 @@ workflow CANCERMICRO {
     reports = reports.mix(FASTP.out.json.collect{ meta, json -> json })
     reports = reports.mix(FASTP.out.html.collect{ meta, html -> html })
     
-    // Create a new channel for the fastq.gz files
+    // Create a new channel for the fastq.gz reads output of fastp
     ch_fastp_reads = FASTP.out.reads
-    ch_fastp_reads.view()
 
-    // //
-    // // SUBWORKFLOW: Index the genome 
-    // //
-    // PREPARE_GENOME(
-    //     ch_fasta
-    // )
-    // ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
+    // // // //
+    // // // // SUBWORKFLOW: Index the genome 
+    // // // //
+    // // // PREPARE_GENOME(
+    // // //     ch_fasta
+    // // // )
+    // // // ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
-    // MODULE: Run BWA-MEM2
+    // MODULE: Run BWA-MEM2 (extra args for samtools passed in 'modules.config')
     //
     BWAMEM2_MEM (
         FASTP.out.reads,
@@ -107,13 +114,13 @@ workflow CANCERMICRO {
     )
     ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions.first())
     
-    // //
-    // // MODULE: Run Samtools view
-    // //
-    // SAMTOOLS_VIEW (
-    //     BWAMEM2_MEM.out.sam
-    //     [args: '-h -f12']
-    // )
+    // // // //
+    // // // // MODULE: Run Samtools view
+    // // // //
+    // // // SAMTOOLS_VIEW (
+    // // //     BWAMEM2_MEM.out.sam
+    // // //     [args: '-h -f12']
+    // // // )
 
     //
     // MODULE: Run Samtools fastq
@@ -123,16 +130,46 @@ workflow CANCERMICRO {
         false
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions.first())
+    
     //
     // MODULE: Run Kraken2
     //
     KRAKEN2_KRAKEN2 (
+        // ch_samplesheet,
         SAMTOOLS_FASTQ.out.fastq,
         ch_kraken2_db,
         false,
         false
     )
     ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions.first())
+
+    // // Create channel with kreport files
+    // ch_kreports = Channel.empty()
+    // ch_kreports = ch_kreports.mix(KRAKEN2_KRAKEN2.out.report)
+    // ch_kreports.view()
+
+    // //
+    // // MODULE: Build Bracken database
+    // //
+    // BRACKEN_BUILD (
+    //     ch_bracken_index
+    // )
+
+    // ch_kreport_files = Channel.empty()
+    // ch_kreport_files = ch_kreport_files.mix(KRAKEN2_KRAKEN2.out.report.collect{it[1]})
+    //
+    // MODULE: Run Bracken
+    //
+    BRACKEN_BRACKEN (
+        KRAKEN2_KRAKEN2.out.report,
+        ch_kraken2_db
+    )
+
+    // MODULE: Run Kraken-biom to create biom file for each kreport
+    KRAKENBIOM (
+        KRAKEN2_KRAKEN2.out.report,
+    )
+    ch_versions = ch_versions.mix(KRAKENBIOM.out.versions.first())
 
     //
     // Collate and save software versions

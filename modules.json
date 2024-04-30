@@ -5,6 +5,16 @@
         "https://github.com/nf-core/modules.git": {
             "modules": {
                 "nf-core": {
+                    "bracken/bracken": {
+                        "branch": "master",
+                        "git_sha": "f362bca32735a848feb314d601db1cee584ee0d1",
+                        "installed_by": ["modules"]
+                    },
+                    "bracken/build": {
+                        "branch": "master",
+                        "git_sha": "dcbe6e77bc6cc0843ce93e6c7bd884d65c215984",
+                        "installed_by": ["modules"]
+                    },
                     "bwamem2/index": {
                         "branch": "master",
                         "git_sha": "7081e04c18de9480948d34513a1c1e2d0fa9126d",

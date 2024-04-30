@@ -46,7 +46,7 @@ process BWAMEM2_MEM {
         -t $task.cpus \\
         \$INDEX \\
         $reads \\
-        | samtools $samtools_command $args2 -h -f12 -@ $task.cpus ${reference} -o ${prefix}.${extension} -
+        | samtools $samtools_command $args2 -@ $task.cpus ${reference} -o ${prefix}.${extension} -
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
