@@ -1,4 +1,4 @@
-process KRAKENBIOM {
+process KRAKENBIOM_COM {
     // tag "$meta.id"
     label 'process_single'
     // label 'process_medium'
@@ -9,13 +9,12 @@ process KRAKENBIOM {
         'biocontainers/kraken-biom:1.2.0--pyh5e36f6f_0' }"
 
     input:
-    path kreports
-    // tuple val(meta), path(kreport)
-    // val(tool) // To differentiate between outputs when using module twice in same workflow
+    path reports_dir
+    val(tool) // To differentiate between outputs when using module twice in same workflow
 
     output:
-    path "*.biom" , emit: biom
-    path "versions.yml"                      , emit: versions
+    path "*_classified.biom" , emit: biom
+    path "versions.yml"      , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -27,9 +26,10 @@ process KRAKENBIOM {
 
     """
     kraken-biom \\
-        $kreports \\
+        -k \\
+        $reports_dir \\
         $args \\
-        -o classified.biom \\
+        -o ${tool}_classified.biom \\
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
