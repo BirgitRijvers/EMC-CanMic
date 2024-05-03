@@ -1,7 +1,6 @@
-process KRAKENBIOM_COM {
-    // tag "$meta.id"
-    label 'process_single'
-    // label 'process_medium'
+process KRAKENBIOM_INDIVIDUAL {
+    tag "$meta.id"
+    label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -9,7 +8,7 @@ process KRAKENBIOM_COM {
         'biocontainers/kraken-biom:1.2.0--pyh5e36f6f_0' }"
 
     input:
-    path reports_dir
+    tuple val(meta), path(kreport)
     val(tool) // To differentiate between outputs when using module twice in same workflow
 
     output:
@@ -21,15 +20,13 @@ process KRAKENBIOM_COM {
 
     script:
     def args = task.ext.args ?: ''
-    // def prefix = task.ext.prefix ?: "${meta.id}"
+    def prefix = task.ext.prefix ?: "${meta.id}"
 
 
     """
     kraken-biom \\
-        -k \\
-        $reports_dir \\
-        $args \\
-        -o ${tool}_classified.biom \\
+        $kreport \\
+        -o ${tool}_${prefix}_classified.biom \\
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

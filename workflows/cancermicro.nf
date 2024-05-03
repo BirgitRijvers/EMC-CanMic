@@ -4,20 +4,25 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { FASTP                  } from '../modules/nf-core/fastp/main'
-include { MULTIQC                } from '../modules/nf-core/multiqc/main'
-include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
-include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
-include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
-include { KRAKENBIOM as KRAKENBIOM_KR } from '../modules/local/krakenbiom/main.nf'
-include { KRAKENBIOM as KRAKENBIOM_BR } from '../modules/local/krakenbiom/main.nf'
-include { KRAKENBIOM_COM         } from '../modules/local/krakenbiom_com/main.nf'
-include { BRACKEN_BUILD          } from '../modules/nf-core/bracken/build/main'
-include { BRACKEN_BRACKEN        } from '../modules/nf-core/bracken/bracken/main'
-include { paramsSummaryMap       } from 'plugin/nf-validation'
-include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_cancermicro_pipeline'
+include { FASTP                                         } from '../modules/nf-core/fastp/main'
+include { MULTIQC                                       } from '../modules/nf-core/multiqc/main'
+include { BWAMEM2_MEM                                   } from '../modules/nf-core/bwamem2/mem/main'
+include { SAMTOOLS_FASTQ                                } from '../modules/nf-core/samtools/fastq/main'
+include { KRAKEN2_KRAKEN2                               } from '../modules/nf-core/kraken2/kraken2/main'
+include { BRACKEN_BUILD                                 } from '../modules/nf-core/bracken/build/main'
+include { BRACKEN_BRACKEN                               } from '../modules/nf-core/bracken/bracken/main'
+// include { KRAKENBIOM as KRAKENBIOM_KR } from '../modules/local/krakenbiom/main.nf'
+// include { KRAKENBIOM as KRAKENBIOM_BR } from '../modules/local/krakenbiom/main.nf'
+// include { KRAKENBIOM_INDIVIDUAL  } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
+// include { KRAKENBIOM_COMBINED    } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
+include { KRAKENBIOM_INDIVIDUAL as KRAKENBIOM_IND_KR    } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
+include { KRAKENBIOM_COMBINED   as KRAKENBIOM_COM_KR    } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
+include { KRAKENBIOM_INDIVIDUAL as KRAKENBIOM_IND_BR    } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
+include { KRAKENBIOM_COMBINED   as KRAKENBIOM_COM_BR    } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
+include { paramsSummaryMap                              } from 'plugin/nf-validation'
+include { paramsSummaryMultiqc                          } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML                        } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText                        } from '../subworkflows/local/utils_nfcore_cancermicro_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -137,50 +142,50 @@ workflow CANCERMICRO {
     //     ch_bracken_index
     // )
 
-    // //
-    // // MODULE: Run Bracken
-    // //
-    // BRACKEN_BRACKEN (
-    //     KRAKEN2_KRAKEN2.out.report,
-    //     ch_kraken2_db
-    // )
+    //
+    // MODULE: Run Bracken
+    //
+    BRACKEN_BRACKEN (
+        KRAKEN2_KRAKEN2.out.report,
+        ch_kraken2_db
+    )
+    ch_versions = ch_versions.mix(BRACKEN_BRACKEN.out.versions.first())
 
     // Create channel with kreports
     ch_kreports = Channel.empty()
     ch_kreports = KRAKEN2_KRAKEN2.out.report.map { it[1] }.toList()
-    ch_kreports.view()
-    // // flatten lets channel emit 1 thing, do not need
-    // ch_kreports = ch_kreports.flatten()
-    // ch_kreports.view()
-    // MODULE: Run Kraken-biom on Kraken2 kreports
-    KRAKENBIOM_KR (
-        ch_kreports
-    )
-    ch_versions = ch_versions.mix(KRAKENBIOM_KR.out.versions.first())
 
-    // // MODULE: Run Kraken-biom on Bracken kreports
-    // KRAKENBIOM_BR (
-    //     BRACKEN_BRACKEN.out.reports,
-    //     "bracken"
-    // )
-    // ch_versions = ch_versions.mix(KRAKENBIOM_BR.out.versions.first())
-
-    // // Create channel(s) for report directories
-    // ch_kraken2_reports_dir = Channel.empty()
-    // ch_kraken2_reports_dir = Channel.fromPath("${params.outdir}/*_kraken2/reports")
-    // ch_kraken2_reports_dir.view()
-
-    // Channel
-    // .fromPath("${params.outdir}/*_bracken/reports")
-    // .set { bracken_reports_dir }
+    // Create channel with bracken kreports
+    ch_br_kreports = Channel.empty()
+    ch_br_kreports = BRACKEN_BRACKEN.out.txt.map { it[1] }.toList()
     
-    // //
-    // // MODULE: Run Kraken-biom on Kraken2 kreports, to create 1 combined BIOM file
-    // //
-    // KRAKENBIOM_COM(
-    //     ch_kraken2_reports_dir,
-    //     "kraken2"
-    // )
+    // MODULE: Run Kraken-biom on Kraken2 kreports COMBINED
+    KRAKENBIOM_COM_KR (
+        ch_kreports,
+        "kraken2"
+    )
+    ch_versions = ch_versions.mix(KRAKENBIOM_COM_KR.out.versions.first())
+
+    // MODULE: Run Kraken-biom on bracken kreports COMBINED
+    KRAKENBIOM_COM_BR (
+        ch_br_kreports,
+        "bracken"
+    )
+    ch_versions = ch_versions.mix(KRAKENBIOM_COM_BR.out.versions.first())
+
+    // MODULE: Run Kraken-biom on Kraken2 kreports SEPARETLY
+    KRAKENBIOM_IND_KR (
+        KRAKEN2_KRAKEN2.out.report,
+        "kraken2"
+    )
+    ch_versions = ch_versions.mix(KRAKENBIOM_IND_KR.out.versions.first())
+    
+    // MODULE: Run Kraken-biom on Bracken kreports SEPARETLY
+    KRAKENBIOM_IND_BR (
+        BRACKEN_BRACKEN.out.txt,
+        "bracken"
+    )
+    ch_versions = ch_versions.mix(KRAKENBIOM_IND_BR.out.versions.first())
 
     //
     // Collate and save software versions
