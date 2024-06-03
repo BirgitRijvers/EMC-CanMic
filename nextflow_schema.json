@@ -11,10 +11,7 @@
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
             "required": [
-                "input",
-                "bwamem2_index",
-                "kraken2_db",
-                "bracken_db"
+                "input"
             ],
             "properties": {
                 "input": {
@@ -35,7 +32,6 @@
                 },
                 "bwamem2_index": {
                     "type": "string",
-                    "default": "/mnt/FS2/data_2/Users/Birgit/db_index/bwa-mem2/",
                     "description": "Path to directory with previously created BWA-MEM2 index",
                     "format": "directory-path",
                     "fa_icon": "fas fa-database"
@@ -52,7 +48,6 @@
                 },
                 "kraken2_db": {
                     "type": "string",
-                    "default": "/mnt/FS2/data_2/Users/Birgit/db_index/kraken2/standard/",
                     "fa_icon": "fas fa-database",
                     "description": "Path to directory with previously build standard Kraken2 database."
                 },
@@ -63,6 +58,29 @@
                     "description": "Path to directory with previously build standard Kraken2 AND Bracken database."
                 }
             }
+        },
+        "qiime2_options": {
+            "title": "QIIME2 options",
+            "type": "object",
+            "description": "Options used during QIIME2 modules",
+            "default": "",
+            "properties": {
+                "whitelist": {
+                    "type": "string",
+                    "default": "/home/birgit/whitelist.csv",
+                    "description": "Path to comma-separated file containing all taxa that should be kept after decontamination.",
+                    "help_text": "If you want to decontaminate with a whitelist approach, you need to create a CSV file with all taxa that should be retained before running the pipeline. Only information from these taxa will be retained in the whitelist-based decontaminated dataset.",
+                    "fa_icon": "fas fa-check"
+                },
+                "blacklist": {
+                    "type": "string",
+                    "default": "/home/birgit/blacklist.csv",
+                    "description": "Path to comma-separated file containing all taxa that should be removed after decontamination",
+                    "help_text": "If you want to decontaminate with a blacklist approach, you need to create a CSV file with all taxa that should be removed before running the pipeline. Information from these taxa will be removed from the blacklist-based decontaminated dataset.",
+                    "fa_icon": "fas fa-ban"
+                }
+            },
+            "fa_icon": "fas fa-chart-bar"
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -255,6 +273,9 @@
     "allOf": [
         {
             "$ref": "#/definitions/input_output_options"
+        },
+        {
+            "$ref": "#/definitions/qiime2_options"
         },
         {
             "$ref": "#/definitions/institutional_config_options"
