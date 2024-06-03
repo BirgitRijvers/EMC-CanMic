@@ -1,23 +1,29 @@
 ## Introduction
 
-**emc/cancermicro** is a ***WORK IN PROGRESS*** bioinformatics pipeline that helps with analyzing the microbiome within RNA sequencing data, obtained from humans. As input it requires a samplesheet and paired-end FASTQ files, it performs quality control and trimming on the reads, filters out reads mapping to human reference genome GRCh38 and taxonomically classifies the remaining reads. As output, you get a BIOM file with the classifications and a MultiQC report of the QC metrics.
+**emc/cancermicro** is a ***WORK IN PROGRESS*** bioinformatics pipeline that helps with analyzing the microbiome within RNA sequencing data, obtained from humans. As input it requires a samplesheet and paired-end FASTQ files, it performs quality control and trimming on the reads, filters out reads mapping to a human reference genome and taxonomically classifies the remaining reads. As output, you get a BIOM file with the classifications, multiple visualizations and a MultiQC report of the QC metrics and tools used.
 
 <!-- TODO nf-core:
 Update introduction as pipeline changes!
 -->
+The steps performed by the pipeline are shown in the figure below:
 
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/contributing/design_guidelines#examples for examples.   -->
+<!-- TODO nf-core: Update metrochart to final version!   -->
+![Metrochart_pipeline_no_Q2](https://github.com/BirgitRijvers/emc-cancermicro/assets/126883391/a72e2de0-ac23-4bf6-a13b-ad0b1031c663)
+
 <!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
+And include the following:
 
-1. Read QC ([`Fastp`](https://github.com/OpenGene/fastp))
-2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
-3. Filter out reads mapping to GRCh38 ([`BWA-MEM2`](https://github.com/bwa-mem2/bwa-mem2) and [`Samtools`](https://www.htslib.org/doc/samtools-view.html))
-4. Convert SAM file to FASTQ ([`Samtool`](https://www.htslib.org/doc/samtools-fasta.html))
+1. Quality control ([`Fastp`](https://github.com/OpenGene/fastp))
+2. Filter out reads mapping to GRCh38 ([`BWA-MEM2`](https://github.com/bwa-mem2/bwa-mem2) and [`Samtools`](https://www.htslib.org/doc/samtools-view.html))
+3. Summarize mapping statistics (`Samtools`[https://www.htslib.org/doc/samtools-flagstat.html])
+4. Convert SAM file to FASTQ ([`Samtools`](https://www.htslib.org/doc/samtools-fasta.html))
 5. Taxonomic classification ([`Kraken2`](https://github.com/DerrickWood/kraken2))
 6. Re-estimation of abundances ([`Bracken`](https://github.com/jenniferlu717/Bracken))
 7. Convert Kreport to BIOM ([`Kraken-biom`](https://github.com/smdabdoub/kraken-biom))
-8. Import data to QIIME2 ([`QIIME2`](https://qiime2.org/))
+8. Generate report with quality metrics and used tools ([`MultiQC`](https://github.com/MultiQC/MultiQC))
+9. Filter classification results based on provided contaminant lists ([`QIIME2`](https://qiime2.org/))
+10. Visualize classifications ([`QIIME2`](https://qiime2.org/))
+11. Calculate alpha and beta diversity metrics ([`QIIME2`](https://qiime2.org/))
 
 ## Usage
 
@@ -35,7 +41,6 @@ CONTROL_1, BR_PVP_0705_R1.fastq.gz, BR_PVP_0705_R2.fastq.gz
 
 Each row represents a pair of fastq files.
 
-
 Now, you can run the pipeline using:
 
 <!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
@@ -45,7 +50,7 @@ nextflow run emc/cancermicro \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
    --outdir <OUTDIR> \
-   --bwamem2_index <path/to/bwamem2_index/directory/> \
+   --fasta <path/to/reference_genome_fasta> \
    --kraken2_db <path/to/kraken2_database/directory/>
 ```
 
