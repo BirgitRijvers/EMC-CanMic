@@ -324,8 +324,8 @@ workflow CANCERMICRO {
     //
     QIIME2_COREDIVERSITY_RAW (
         QIIME2_COLLAPSE_RAW.out.collapsed_table,
-        "3",
-        "/home/birgit/sub_CRC/larger/metadata_4_large_CRC_sub.tsv",
+        params.sampling_depth,
+        params.metadata,
         "raw"
     )
     ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_RAW.out.versions.first())
@@ -335,8 +335,8 @@ workflow CANCERMICRO {
     //
     QIIME2_COREDIVERSITY_WHITE (
         QIIME2_COLLAPSE_WHITE.out.collapsed_table,
-        "3",
-        "/home/birgit/sub_CRC/larger/metadata_4_large_CRC_sub.tsv",
+        params.sampling_depth,
+        params.metadata,
         "white"
     )
     ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_WHITE.out.versions.first())
@@ -346,8 +346,8 @@ workflow CANCERMICRO {
     //
     QIIME2_COREDIVERSITY_BLACK (
         QIIME2_COLLAPSE_BLACK.out.collapsed_table,
-        "3",
-        "/home/birgit/sub_CRC/larger/metadata_4_large_CRC_sub.tsv",
+        params.sampling_depth,
+        params.metadata,
         "black"
     )
     ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_BLACK.out.versions.first())

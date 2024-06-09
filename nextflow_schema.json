@@ -10,9 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": [
-                "input"
-            ],
+            "required": ["input"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -65,19 +63,41 @@
             "description": "Options used during QIIME2 modules",
             "default": "",
             "properties": {
+                "QIIME2": {
+                    "type": "boolean",
+                    "description": "Parameter to specify if down stream analysis of taxonomic classification results with QIIME2 needs to be performed.",
+                    "default": true,
+                    "fa_icon": "fas fa-angle-double-down"
+                },
                 "whitelist": {
                     "type": "string",
                     "default": "/home/birgit/whitelist.csv",
                     "description": "Path to comma-separated file containing all taxa that should be kept after decontamination.",
                     "help_text": "If you want to decontaminate with a whitelist approach, you need to create a CSV file with all taxa that should be retained before running the pipeline. Only information from these taxa will be retained in the whitelist-based decontaminated dataset.",
-                    "fa_icon": "fas fa-check"
+                    "fa_icon": "fas fa-check",
+                    "pattern": ".*\\.csv$"
                 },
                 "blacklist": {
                     "type": "string",
                     "default": "/home/birgit/blacklist.csv",
-                    "description": "Path to comma-separated file containing all taxa that should be removed after decontamination",
+                    "description": "Path to comma-separated file containing all taxa that should be removed after decontamination.",
                     "help_text": "If you want to decontaminate with a blacklist approach, you need to create a CSV file with all taxa that should be removed before running the pipeline. Information from these taxa will be removed from the blacklist-based decontaminated dataset.",
-                    "fa_icon": "fas fa-ban"
+                    "fa_icon": "fas fa-ban",
+                    "pattern": ".*\\.csv$"
+                },
+                "metadata": {
+                    "type": "string",
+                    "default": "/home/birgit/metadata_all_CRC.tsv",
+                    "fa_icon": "fas fa-table",
+                    "pattern": ".*\\.tsv$",
+                    "description": "Path to tab-separated file containing metadata of the samples used as input. Sample ID (first column) should correspond to name of Bracken report for each sample.",
+                    "format": "file-path"
+                },
+                "sampling_depth": {
+                    "type": "integer",
+                    "default": 1000,
+                    "fa_icon": "fas fa-balance-scale",
+                    "description": "Amount of sequences to use for each sample during QIIME diversity analyses."
                 }
             },
             "fa_icon": "fas fa-chart-bar"
@@ -163,14 +183,7 @@
                     "description": "Method used to save pipeline results to output directory.",
                     "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
                     "fa_icon": "fas fa-copy",
-                    "enum": [
-                        "symlink",
-                        "rellink",
-                        "link",
-                        "copy",
-                        "copyNoFollow",
-                        "move"
-                    ],
+                    "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
                     "hidden": true
                 },
                 "email": {
