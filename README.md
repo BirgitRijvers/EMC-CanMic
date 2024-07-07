@@ -1,11 +1,11 @@
 ## Introduction
 
-**emc/cancermicro** is a ***WORK IN PROGRESS*** bioinformatics pipeline that helps with analyzing the microbiome within RNA sequencing data, obtained from humans. As input it requires a samplesheet and paired-end FASTQ files, it performs quality control and trimming on the reads, filters out reads mapping to a human reference genome and taxonomically classifies the remaining reads. As output, you receive all intermediate outputs as well as a BIOM file with the classifications and a MultiQC report of the QC metrics and tools used.
+**EMC-CanMic** is a ***WORK IN PROGRESS*** bioinformatics pipeline that helps with analyzing the microbiome within RNA sequencing data, obtained from humans. As input it requires a samplesheet and paired-end FASTQ files, it performs quality control and trimming on the reads, filters out reads mapping to a human reference genome and taxonomically classifies the remaining reads. As output, you receive all intermediate outputs as well as a BIOM file with the classifications and a MultiQC report of the QC metrics and tools used.
 
 <!-- TODO nf-core:
 Update introduction as pipeline changes!
 -->
-The steps performed by the pipeline are shown in the figure below:
+The steps performed by the EMC-CanMic pipeline are shown in the figure below:
 
 <!-- TODO nf-core: Update metrochart to final version!   -->
 ![Metrochart_pipeline_no_Q2](https://github.com/BirgitRijvers/emc-cancermicro/assets/126883391/a72e2de0-ac23-4bf6-a13b-ad0b1031c663)
@@ -39,26 +39,41 @@ CONTROL_1, BR_PVP_0705_R1.fastq.gz, BR_PVP_0705_R2.fastq.gz
 
 Each row represents a pair of fastq files.
 
-Now, you can run the pipeline using:
+Now, you can run the EMC-CanMic pipeline using:
 
 <!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
 
 ```bash
-nextflow run emc/cancermicro \
-   -profile <docker/singularity/.../institute> \
+nextflow run emc-cancermicro \
+   -profile <docker/singularity/conda/.../institute> \
    --input samplesheet.csv \
    --outdir <OUTDIR> \
    --fasta <path/to/reference_genome_fasta> \
    --kraken2_db <path/to/kraken2_database/directory/>
 ```
 
+Change the default "null" values in "nextflow.config" to the paths you will use most often to save time. Values in this file will be overwritten by the values specified in the command.
+
 > [!WARNING]
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
 > see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
 
+<!-- ## Test run
+To test if EMC-CanMic was installed properly and runs on your machine, a small test dataset is provided with the pipeline. To perform a test run, use the following command: 
+
+
+```bash
+nextflow run emc-cancermicro \
+   -profile <docker/singularity/conda/.../institute> \
+   --input test_samplesheet.csv \
+   --outdir <OUTDIR> \
+   --fasta <path/to/reference_genome_fasta> \
+   --kraken2_db <path/to/kraken2_database/directory/>
+``` -->
+
 ## Credits
 
-emc/cancermicro was originally written by Birgit Rijvers.
+EMC-CanMic was originally written by Birgit Rijvers.
 
 We thank the following people for their assistance in the development of this pipeline:
 - Willem de Koning

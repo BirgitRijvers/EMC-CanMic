@@ -5,14 +5,15 @@
 */
 
 include { FASTP                                               } from '../modules/nf-core/fastp/main'
-include { MULTIQC                                             } from '../modules/nf-core/multiqc/main'
-include { BWAMEM2_MEM                                         } from '../modules/nf-core/bwamem2/mem/main'
 include { BWAMEM2_INDEX                                       } from '../modules/nf-core/bwamem2/index/main'
+include { BWAMEM2_MEM                                         } from '../modules/nf-core/bwamem2/mem/main'
+include { SAMTOOLS_FLAGSTAT                                   } from '../modules/local/samtools/flagstat/main'
 include { SAMTOOLS_FASTQ                                      } from '../modules/nf-core/samtools/fastq/main'
 include { KRAKEN2_KRAKEN2                                     } from '../modules/nf-core/kraken2/kraken2/main'
 include { BRACKEN_BRACKEN                                     } from '../modules/nf-core/bracken/bracken/main'
 include { KRAKENBIOM_COMBINED   as KRAKENBIOM_COM_KR          } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
 include { KRAKENBIOM_COMBINED   as KRAKENBIOM_COM_BR          } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
+include { MULTIQC                                             } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                                    } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc                                } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                              } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -100,6 +101,13 @@ workflow CANCERMICRO {
     )
     ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions.first())
 
+    // Module: Run Samtools flagstat
+    SAMTOOLS_FLAGSTAT (
+        BWAMEM2_MEM.out.bam
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_FLAGSTAT.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(SAMTOOLS_FLAGSTAT.out.flagstat.collect{it[1]})
+    
     //
     // MODULE: Run Samtools fastq
     //
@@ -120,9 +128,9 @@ workflow CANCERMICRO {
         false,
         false
     )
-    ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions.first())
+    ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions)
 
-    ch_bracken_index = Channel.value([[id:'kr_db_br'], params.kraken2_db])
+    // ch_bracken_index = Channel.value([[id:'kr_db_br'], params.kraken2_db])
 
     //
     // MODULE: Run Bracken
