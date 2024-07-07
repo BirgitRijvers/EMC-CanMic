@@ -1,6 +1,6 @@
 ## Introduction
 
-**emc/cancermicro** is a ***WORK IN PROGRESS*** bioinformatics pipeline that helps with analyzing the microbiome within RNA sequencing data, obtained from humans. As input it requires a samplesheet and paired-end FASTQ files, it performs quality control and trimming on the reads, filters out reads mapping to a human reference genome and taxonomically classifies the remaining reads. As output, you get a BIOM file with the classifications, multiple visualizations and a MultiQC report of the QC metrics and tools used.
+**emc/cancermicro** is a ***WORK IN PROGRESS*** bioinformatics pipeline that helps with analyzing the microbiome within RNA sequencing data, obtained from humans. As input it requires a samplesheet and paired-end FASTQ files, it performs quality control and trimming on the reads, filters out reads mapping to a human reference genome and taxonomically classifies the remaining reads. As output, you receive all intermediate outputs as well as a BIOM file with the classifications and a MultiQC report of the QC metrics and tools used.
 
 <!-- TODO nf-core:
 Update introduction as pipeline changes!
@@ -21,9 +21,7 @@ And include the following:
 6. Re-estimation of abundances ([`Bracken`](https://github.com/jenniferlu717/Bracken))
 7. Convert Kreport to BIOM ([`Kraken-biom`](https://github.com/smdabdoub/kraken-biom))
 8. Generate report with quality metrics and used tools ([`MultiQC`](https://github.com/MultiQC/MultiQC))
-9. Filter classification results based on provided contaminant lists ([`QIIME2`](https://qiime2.org/))
-10. Visualize classifications ([`QIIME2`](https://qiime2.org/))
-11. Calculate alpha and beta diversity metrics ([`QIIME2`](https://qiime2.org/))
+
 
 ## Usage
 
