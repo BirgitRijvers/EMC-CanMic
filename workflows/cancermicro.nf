@@ -9,30 +9,10 @@ include { MULTIQC                                             } from '../modules
 include { BWAMEM2_MEM                                         } from '../modules/nf-core/bwamem2/mem/main'
 include { BWAMEM2_INDEX                                       } from '../modules/nf-core/bwamem2/index/main'
 include { SAMTOOLS_FASTQ                                      } from '../modules/nf-core/samtools/fastq/main'
-// include { KRAKEN2_SBUILD                                      } from '../modules/local/kraken2/sbuild/main'
 include { KRAKEN2_KRAKEN2                                     } from '../modules/nf-core/kraken2/kraken2/main'
-// include { BRACKEN_BUILD                                       } from '../modules/nf-core/bracken/build/main'
 include { BRACKEN_BRACKEN                                     } from '../modules/nf-core/bracken/bracken/main'
-include { KRAKENBIOM_INDIVIDUAL as KRAKENBIOM_IND_KR          } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
 include { KRAKENBIOM_COMBINED   as KRAKENBIOM_COM_KR          } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
-include { KRAKENBIOM_INDIVIDUAL as KRAKENBIOM_IND_BR          } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
 include { KRAKENBIOM_COMBINED   as KRAKENBIOM_COM_BR          } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
-// include { QIIME2_IMPORT                                       } from '../modules/local/qiime2/import/main'
-// include { QIIME2_SUMMARIZE                                    } from '../modules/local/qiime2/summarize/main'
-// include { QIIME2_BARPLOT as QIIME2_BARPLOT_RAW                } from '../modules/local/qiime2/barplot/main'
-// include { QIIME2_BARPLOT as QIIME2_BARPLOT_FILTERED_WHITE     } from '../modules/local/qiime2/barplot/main'
-// include { QIIME2_BARPLOT as QIIME2_BARPLOT_FILTERED_BLACK     } from '../modules/local/qiime2/barplot/main'
-// include { QIIME2_FILTER_WHITELIST                             } from '../modules/local/qiime2/decontaminate/whitelist/main'
-// include { QIIME2_FILTER_BLACKLIST                             } from '../modules/local/qiime2/decontaminate/blacklist/main'
-// include { QIIME2_COLLAPSE as QIIME2_COLLAPSE_RAW              } from '../modules/local/qiime2/collapse/main'
-// include { QIIME2_COLLAPSE as QIIME2_COLLAPSE_WHITE            } from '../modules/local/qiime2/collapse/main'
-// include { QIIME2_COLLAPSE as QIIME2_COLLAPSE_BLACK            } from '../modules/local/qiime2/collapse/main'
-// include { QIIME2_HEATMAP as QIIME2_HEATMAP_RAW                } from '../modules/local/qiime2/heatmap/main'
-// include { QIIME2_HEATMAP as QIIME2_HEATMAP_WHITE              } from '../modules/local/qiime2/heatmap/main'
-// include { QIIME2_HEATMAP as QIIME2_HEATMAP_BLACK              } from '../modules/local/qiime2/heatmap/main'
-// include { QIIME2_COREDIVERSITY as QIIME2_COREDIVERSITY_RAW    } from '../modules/local/qiime2/corediversity/main'
-// include { QIIME2_COREDIVERSITY as QIIME2_COREDIVERSITY_WHITE  } from '../modules/local/qiime2/corediversity/main'
-// include { QIIME2_COREDIVERSITY as QIIME2_COREDIVERSITY_BLACK  } from '../modules/local/qiime2/corediversity/main'
 include { paramsSummaryMap                                    } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc                                } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                              } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -43,7 +23,6 @@ include { methodsDescriptionText                              } from '../subwork
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { QIIME2_SUBWORKFLOW                                  } from '../subworkflows/local/qiime2/main'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     VALIDATE PARAMS
@@ -129,29 +108,6 @@ workflow CANCERMICRO {
         false
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
-    
-    // KRAKEN2_SBUILD does not yet work as expected so commented out for now
-
-    // ch_kr_db = Channel.empty()
-    // ch_kr_db = Channel.value([[id:'kraken2_standard_db'], '/this_is_a_name'])
-
-    // // Check if Kraken2 database is provided
-    // if (!params.kraken2_db) {
-    //     //
-    //     // MODULE: Build Kraken2 standard database
-    //     //
-    //     KRAKEN2_SBUILD (
-    //         ch_kr_db,
-    //         'standard_tester_db',
-    //         true
-    //     )
-    //     ch_versions = ch_versions.mix(KRAKEN2_SBUILD.out.versions.first())
-    //     ch_kraken2_db = KRAKEN2_SBUILD.out.database
-    //     }
-    //     else {
-    //         // Use provided Kraken2 database
-    //         ch_kraken2_db = Channel.value([params.kraken2_db])
-    //     }
 
     ch_kraken2_db = Channel.value([params.kraken2_db])
 
@@ -165,15 +121,6 @@ workflow CANCERMICRO {
         false
     )
     ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions.first())
-
-    // Bracken_build commented out as long as Kraken2_SBUILD does not work
-
-    // //
-    // // MODULE: Build Bracken database
-    // //
-    // BRACKEN_BUILD (
-    //     ch_bracken_index
-    // )
 
     ch_bracken_index = Channel.value([[id:'kr_db_br'], params.kraken2_db])
 
@@ -205,170 +152,6 @@ workflow CANCERMICRO {
         "Bracken"
     )
     ch_versions = ch_versions.mix(KRAKENBIOM_COM_BR.out.versions)
-
-    //
-    // MODULE: Run Kraken-biom on Kraken2 kreports SEPARATELY
-    //
-    KRAKENBIOM_IND_KR (
-        KRAKEN2_KRAKEN2.out.report,
-        "kraken2"
-    )
-    ch_versions = ch_versions.mix(KRAKENBIOM_IND_KR.out.versions)
-    
-    // MODULE: Run Kraken-biom on Bracken kreports SEPARATELY
-    KRAKENBIOM_IND_BR (
-        BRACKEN_BRACKEN.out.txt,
-        "bracken"
-    )
-    ch_versions = ch_versions.mix(KRAKENBIOM_IND_BR.out.versions)
-
-    // Run subworkflow if specified
-    if (params.QIIME2) {
-    QIIME2_SUBWORKFLOW (
-        KRAKENBIOM_COM_KR.out.biom
-    )
-    ch_versions = ch_versions.mix(QIIME2_SUBWORKFLOW.out.versions)
-    }
-
-    // //
-    // // MODULE: Run QIIME2 import
-    // //
-    // QIIME2_IMPORT (
-    //     KRAKENBIOM_COM_KR.out.biom
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_IMPORT.out.versions.first())
-
-    // //
-    // // MODULE: Run QIIME2 feature-table summarize on raw data
-    // //
-    // QIIME2_SUMMARIZE (
-    //     QIIME2_IMPORT.out.frequency
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_SUMMARIZE.out.versions.first())
-
-    // //
-    // // MODULE: Run QIIME2 barplot on raw data
-    // //
-    // QIIME2_BARPLOT_RAW (
-    //     QIIME2_IMPORT.out.frequency,
-    //     QIIME2_IMPORT.out.taxonomy,
-    //     "raw"
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_BARPLOT_RAW.out.versions.first())
-
-    // ch_whitelist = Channel.fromPath(params.whitelist).map { it.text.trim() }
-
-    // //
-    // // MODULE: Run QIIME2 filter whitelist
-    // //
-    // QIIME2_FILTER_WHITELIST (
-    //     QIIME2_IMPORT.out.frequency,
-    //     QIIME2_IMPORT.out.taxonomy,
-    //     ch_whitelist
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_FILTER_WHITELIST.out.versions.first())
-
-    // ch_blacklist = Channel.fromPath(params.blacklist).map { it.text.trim() }
-
-    // //
-    // // MODULE: Run QIIME2 filter blacklist
-    // //
-    // QIIME2_FILTER_BLACKLIST (
-    //     QIIME2_IMPORT.out.frequency,
-    //     QIIME2_IMPORT.out.taxonomy,
-    //     ch_blacklist
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_FILTER_BLACKLIST.out.versions.first())
-    
-    // //
-    // // MODULE: Run QIIME2 barplot on whitelist filtered data
-    // //
-    // QIIME2_BARPLOT_FILTERED_WHITE (
-    //     QIIME2_FILTER_WHITELIST.out.filtered_table,
-    //     QIIME2_IMPORT.out.taxonomy,
-    //     "filtered_white"
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_BARPLOT_FILTERED_WHITE.out.versions.first())
-
-    // //
-    // // MODULE: Run QIIME2 barplot on blacklist filtered data
-    // //
-    // QIIME2_BARPLOT_FILTERED_BLACK (
-    //     QIIME2_FILTER_BLACKLIST.out.filtered_table,
-    //     QIIME2_IMPORT.out.taxonomy,
-    //     "filtered_black"
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_BARPLOT_FILTERED_BLACK.out.versions.first())
-
-    // // 
-    // // MODULE: Run QIIME2 collapse on raw data
-    // //
-    // QIIME2_COLLAPSE_RAW (
-    //     QIIME2_IMPORT.out.frequency,
-    //     QIIME2_IMPORT.out.taxonomy
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_COLLAPSE_RAW.out.versions.first())
-    
-    // // 
-    // // MODULE: Run QIIME2 collapse on whitelist filtered data
-    // //
-    // QIIME2_COLLAPSE_WHITE (
-    //     QIIME2_FILTER_WHITELIST.out.filtered_table,
-    //     QIIME2_IMPORT.out.taxonomy,
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_COLLAPSE_WHITE.out.versions.first())
-
-    // // 
-    // // MODULE: Run QIIME2 collapse on blacklist filtered data
-    // //
-    // QIIME2_COLLAPSE_BLACK (
-    //     QIIME2_FILTER_WHITELIST.out.filtered_table,
-    //     QIIME2_IMPORT.out.taxonomy,
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_COLLAPSE_BLACK.out.versions.first())
-
-    // //
-    // // MODULE: Run QIIME2 core diversity on raw data
-    // //
-    // QIIME2_COREDIVERSITY_RAW (
-    //     QIIME2_COLLAPSE_RAW.out.collapsed_table,
-    //     params.sampling_depth,
-    //     params.metadata,
-    //     "raw"
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_RAW.out.versions.first())
-
-    // //
-    // // MODULE: Run QIIME2 core diversity on whitelist filtered data
-    // //
-    // QIIME2_COREDIVERSITY_WHITE (
-    //     QIIME2_COLLAPSE_WHITE.out.collapsed_table,
-    //     params.sampling_depth,
-    //     params.metadata,
-    //     "white"
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_WHITE.out.versions.first())
-
-    // //
-    // // MODULE: Run QIIME2 core diversity on blacklist filtered data
-    // //
-    // QIIME2_COREDIVERSITY_BLACK (
-    //     QIIME2_COLLAPSE_BLACK.out.collapsed_table,
-    //     params.sampling_depth,
-    //     params.metadata,
-    //     "black"
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_BLACK.out.versions.first())
-
-    // //
-    // // MODULE: Run QIIME2 heatmap on raw data
-    // //
-    // QIIME2_HEATMAP_RAW (
-    //     QIIME2_COLLAPSE_RAW.out.collapsed_table,
-    //     QIIME2_IMPORT.out.taxonomy,
-    //     "raw"
-    // )
-    // ch_versions = ch_versions.mix(QIIME2_HEATMAP_RAW.out.versions.first())
 
     //
     // Collate and save software versions
