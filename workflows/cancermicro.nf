@@ -5,14 +5,19 @@
 */
 
 include { FASTP                                               } from '../modules/nf-core/fastp/main'
+include { FASTQC                                              } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                                             } from '../modules/nf-core/multiqc/main'
 include { BWAMEM2_MEM                                         } from '../modules/nf-core/bwamem2/mem/main'
 include { BWAMEM2_INDEX                                       } from '../modules/nf-core/bwamem2/index/main'
-include { SAMTOOLS_FASTQ                                      } from '../modules/nf-core/samtools/fastq/main'
+include { SAMTOOLS_FASTQ                                      } from '../modules/local/samtools/fastq/main'
+include { SAMTOOLS_FASTQ as SAMTOOLS_FASTQ_GZIP               } from '../modules/nf-core/samtools/fastq/main'
 // include { KRAKEN2_SBUILD                                      } from '../modules/local/kraken2/sbuild/main'
 include { KRAKEN2_KRAKEN2                                     } from '../modules/nf-core/kraken2/kraken2/main'
+include { KRAKENTOOLS_KREPORT2KRONA                           } from '../modules/nf-core/krakentools/kreport2krona/main'
 // include { BRACKEN_BUILD                                       } from '../modules/nf-core/bracken/build/main'
 include { BRACKEN_BRACKEN                                     } from '../modules/nf-core/bracken/bracken/main'
+include { FARGENE                                             } from '../modules/nf-core/fargene/main'
+include { RGI_MAIN                                            } from '../modules/local/rgi/main/main.nf'
 include { KRAKENBIOM_INDIVIDUAL as KRAKENBIOM_IND_KR          } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
 include { KRAKENBIOM_COMBINED   as KRAKENBIOM_COM_KR          } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
 include { KRAKENBIOM_INDIVIDUAL as KRAKENBIOM_IND_BR          } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
@@ -43,7 +48,7 @@ include { methodsDescriptionText                              } from '../subwork
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { QIIME2_SUBWORKFLOW                                  } from '../subworkflows/local/qiime2/main'
+// include { QIIME2_SUBWORKFLOW                                  } from '../subworkflows/local/qiime2/main'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     VALIDATE PARAMS
@@ -78,6 +83,13 @@ workflow CANCERMICRO {
     ch_bracken_index = Channel.empty()
 
     //
+    // MODULE: Run FastQC
+    //
+    FASTQC (
+        ch_samplesheet
+    )
+    
+    //
     // MODULE: Run Fastp
     //
     FASTP (
@@ -93,6 +105,15 @@ workflow CANCERMICRO {
 
     // Make tuple for fasta input with id and path from parameters
     ch_fasta = Channel.value([[id:'input_genome_fasta'], params.fasta])
+
+    // // 
+    // // MODULE: Run RGI
+    // //
+    // RGI_MAIN (
+    //     FASTP.out.reads,
+    //     "/mnt/FS2/data_2/Users/Birgit/rgi/localDB/",
+    //     "/mnt/FS2/data_2/Users/Birgit/rgi/wildcard/"
+    // )
 
     // Check if BWA-MEM2 index is provided
     if (!params.bwamem2_index) {
@@ -122,13 +143,31 @@ workflow CANCERMICRO {
     ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions.first())
 
     //
-    // MODULE: Run Samtools fastq
+    // MODULE: Run Samtools fastq GZIP
+    //
+    SAMTOOLS_FASTQ_GZIP (
+        BWAMEM2_MEM.out.bam,
+        false
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_FASTQ_GZIP.out.versions)
+
+    //
+    // MODULE: Run Samtools fastq uncompressed
     //
     SAMTOOLS_FASTQ (
         BWAMEM2_MEM.out.bam,
         false
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
+
+    //
+    // MODULE: Run fargene
+    //
+    FARGENE (
+        SAMTOOLS_FASTQ.out.fastq,
+        "class_a"
+    )
+    ch_versions = ch_versions.mix(FARGENE.out.versions)
     
     // KRAKEN2_SBUILD does not yet work as expected so commented out for now
 
@@ -159,12 +198,19 @@ workflow CANCERMICRO {
     // MODULE: Run Kraken2 (Confidence set to --confidence 0.05 in modules.config)
     //
     KRAKEN2_KRAKEN2 (
-        SAMTOOLS_FASTQ.out.fastq,
+        SAMTOOLS_FASTQ_GZIP.out.fastq,
         ch_kraken2_db,
         false,
         false
     )
     ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions.first())
+    
+    //
+    // MODULE: Run KrakenTools kreport2krona
+    //
+    KRAKENTOOLS_KREPORT2KRONA (
+        KRAKEN2_KRAKEN2.out.report
+    )
 
     // Bracken_build commented out as long as Kraken2_SBUILD does not work
 
@@ -222,13 +268,13 @@ workflow CANCERMICRO {
     )
     ch_versions = ch_versions.mix(KRAKENBIOM_IND_BR.out.versions)
 
-    // Run subworkflow if specified
-    if (params.QIIME2) {
-    QIIME2_SUBWORKFLOW (
-        KRAKENBIOM_COM_KR.out.biom
-    )
-    ch_versions = ch_versions.mix(QIIME2_SUBWORKFLOW.out.versions)
-    }
+    // // Run subworkflow if specified
+    // if (params.QIIME2) {
+    // QIIME2_SUBWORKFLOW (
+    //     KRAKENBIOM_COM_KR.out.biom
+    // )
+    // ch_versions = ch_versions.mix(QIIME2_SUBWORKFLOW.out.versions)
+    // }
 
     // //
     // // MODULE: Run QIIME2 import
