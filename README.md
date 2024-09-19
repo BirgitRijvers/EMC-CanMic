@@ -1,6 +1,6 @@
 ## Introduction
 
-**emc/cancermicro** is a ***WORK IN PROGRESS*** bioinformatics pipeline that helps with analyzing the microbiome within RNA sequencing data, obtained from humans. As input it requires a samplesheet and paired-end FASTQ files, it performs quality control and trimming on the reads, filters out reads mapping to a human reference genome and taxonomically classifies the remaining reads. As output, you get a BIOM file with the classifications, multiple visualizations and a MultiQC report of the QC metrics and tools used.
+**emc/cancermicro** is a ***WORK IN PROGRESS*** bioinformatics pipeline that helps with analyzing the microbiome within RNA sequencing data, obtained from humans. As input it requires a samplesheet and paired-end FASTQ files, it performs quality control and trimming on the reads, filters out reads mapping to a human reference genome and taxonomically classifies the remaining reads. Additionally, AMR genes are detected with RGI. As output, you get a BIOM file with the classifications, multiple visualizations and a MultiQC report of the QC metrics and tools used.
 
 <!-- TODO nf-core:
 Update introduction as pipeline changes!
@@ -24,6 +24,9 @@ And include the following:
 9. Filter classification results based on provided contaminant lists ([`QIIME2`](https://qiime2.org/))
 10. Visualize classifications ([`QIIME2`](https://qiime2.org/))
 11. Calculate alpha and beta diversity metrics ([`QIIME2`](https://qiime2.org/))
+
+The final design of the fully developed pipeline is visualized in the figure below:
+![Metrochart_pipeline_with_MQC](https://github.com/user-attachments/assets/5df4639e-7ad2-48cc-a57e-c63af03df651)
 
 ## Usage
 
