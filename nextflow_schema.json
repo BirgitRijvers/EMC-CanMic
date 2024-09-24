@@ -71,7 +71,7 @@
                 },
                 "whitelist": {
                     "type": "string",
-                    "default": "/home/birgit/whitelist.csv",
+                    "default": "/home/birgit/programs/emc-cancermicro/whitelist.csv",
                     "description": "Path to comma-separated file containing all taxa that should be kept after decontamination.",
                     "help_text": "If you want to decontaminate with a whitelist approach, you need to create a CSV file with all taxa that should be retained before running the pipeline. Only information from these taxa will be retained in the whitelist-based decontaminated dataset.",
                     "fa_icon": "fas fa-check",
@@ -79,7 +79,7 @@
                 },
                 "blacklist": {
                     "type": "string",
-                    "default": "/home/birgit/blacklist.csv",
+                    "default": "/home/birgit/programs/emc-cancermicro/blacklist.csv",
                     "description": "Path to comma-separated file containing all taxa that should be removed after decontamination.",
                     "help_text": "If you want to decontaminate with a blacklist approach, you need to create a CSV file with all taxa that should be removed before running the pipeline. Information from these taxa will be removed from the blacklist-based decontaminated dataset.",
                     "fa_icon": "fas fa-ban",
