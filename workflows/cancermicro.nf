@@ -17,6 +17,8 @@ include { KRAKENTOOLS_KREPORT2KRONA                           } from '../modules
 // include { BRACKEN_BUILD                                       } from '../modules/nf-core/bracken/build/main'
 include { BRACKEN_BRACKEN                                     } from '../modules/nf-core/bracken/bracken/main'
 include { FARGENE                                             } from '../modules/nf-core/fargene/main'
+// include { HAMRONIZATION_FARGENE                               } from '../modules/nf-core/hamronization/fargene/main'
+// include { HAMRONIZATION_SUMMARIZE                             } from '../modules/nf-core/hamronization/summarize/main'
 // include { RGI_MAIN                                            } from '../modules/local/rgi/main/main.nf'
 include { KRAKENBIOM_INDIVIDUAL as KRAKENBIOM_IND_KR          } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
 include { KRAKENBIOM_COMBINED   as KRAKENBIOM_COM_KR          } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
@@ -141,24 +143,61 @@ workflow CANCERMICRO {
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ_GZIP.out.versions)
 
-    // //
-    // // MODULE: Run Samtools fastq uncompressed
-    // //
-    // SAMTOOLS_FASTQ (
-    //     ch_bam_copy2,
-    //     false
-    // )
-    // ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
+    //
+    // MODULE: Run Samtools fastq uncompressed
+    //
+    SAMTOOLS_FASTQ (
+        ch_bam_copy2,
+        false
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
 
     // //
     // // MODULE: Run fargene
     // //
     // FARGENE (
     //     SAMTOOLS_FASTQ.out.fastq,
-    //     "class_a"
+    //     "class_a,"
     // )
     // ch_versions = ch_versions.mix(FARGENE.out.versions)
-    
+
+    // Fargene code from other pipeline:
+    // fastas      // tuple val(meta), path(contigs)
+    // equals samtoolsfastq out: tuple val(meta), path("*_{1,2}.fastq")
+
+    // copy of SAMTOOLS_FASTQ.out.fastq for fastas:
+    fastas = SAMTOOLS_FASTQ.out.fastq 
+
+    // hamro input channel prep
+    ch_input_to_hamronization_summarize = Channel.empty()
+
+    // fARGene run
+    if ( !params.arg_skip_fargene ) {
+        ch_fargene_classes = Channel.fromList( params.arg_fargene_hmmmodel.tokenize(',') )
+
+        ch_fargene_input = fastas
+                            .combine( ch_fargene_classes )
+                            .map {
+                                meta, fastas, hmm_class ->
+                                    def meta_new = meta.clone()
+                                    meta_new['hmm_class'] = hmm_class
+                                [ meta_new, fastas, hmm_class ]
+                            }
+                            .multiMap {
+                                fastas: [ it[0], it[1] ]
+                                hmmclass: it[2]
+                            }
+
+        FARGENE (
+            ch_fargene_input.fastas, 
+            ch_fargene_input.hmmclass
+        )
+        ch_versions = ch_versions.mix( FARGENE.out.versions )
+    }
+
+    FARGENE.out.hmm_genes.view()
+
+
     // KRAKEN2_SBUILD does not yet work as expected so commented out for now
 
     // ch_kr_db = Channel.empty()
