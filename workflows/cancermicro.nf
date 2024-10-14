@@ -17,9 +17,11 @@ include { KRAKENTOOLS_KREPORT2KRONA                           } from '../modules
 // include { BRACKEN_BUILD                                       } from '../modules/nf-core/bracken/build/main'
 include { BRACKEN_BRACKEN                                     } from '../modules/nf-core/bracken/bracken/main'
 include { FARGENE                                             } from '../modules/nf-core/fargene/main'
-// include { HAMRONIZATION_FARGENE                               } from '../modules/nf-core/hamronization/fargene/main'
-// include { HAMRONIZATION_SUMMARIZE                             } from '../modules/nf-core/hamronization/summarize/main'
-// include { RGI_MAIN                                            } from '../modules/local/rgi/main/main.nf'
+include { UNTAR                                               } from '../modules/nf-core/untar/main'
+include { SEQTK_FQTOFA                                        } from '../modules/local/seqtk/fqtofa/main'
+include { SEQKIT_FQ2FA                                        } from '../modules/nf-core/seqkit/fq2fa/main'
+include { RGI_CARDANNOTATION                                  } from '../modules/nf-core/rgi/cardannotation/main.nf'
+include { RGI_MAIN                                            } from '../modules/nf-core/rgi/main/main.nf'
 include { KRAKENBIOM_INDIVIDUAL as KRAKENBIOM_IND_KR          } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
 include { KRAKENBIOM_COMBINED   as KRAKENBIOM_COM_KR          } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
 include { KRAKENBIOM_INDIVIDUAL as KRAKENBIOM_IND_BR          } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
@@ -88,21 +90,46 @@ workflow CANCERMICRO {
     )
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]})
     ch_versions = ch_versions.mix(FASTP.out.versions)
-    ch_reports = ch_reports.mix(FASTP.out.json.collect{ meta, json -> json })
-    ch_reports = ch_reports.mix(FASTP.out.html.collect{ meta, html -> html })
+    // ch_reports = ch_reports.mix(FASTP.out.json.collect{ meta, json -> json })
+    // ch_reports = ch_reports.mix(FASTP.out.html.collect{ meta, html -> html })
 
-    // // 
-    // // MODULE: Run RGI
-    // //
-    // RGI_MAIN (
-    //     FASTP.out.reads,
-    //     "/mnt/FS2/data_2/Users/Birgit/rgi/localDB/",
-    //     "/mnt/FS2/data_2/Users/Birgit/rgi/wildcard/"
-    // )
+    //
+    // MODULE: Run Seqkit FQ2FA
+    //
+    SEQKIT_FQ2FA (
+        FASTP.out.reads
+    )
+    ch_versions = ch_versions.mix(SEQKIT_FQ2FA.out.versions)
+
+    // 
+    // MODULE: Download and untar CARD database
+    //
+    UNTAR( 
+        [ [], file('https://card.mcmaster.ca/latest/data', checkIfExists: true) ] 
+    )
+    ch_versions = ch_versions.mix( UNTAR.out.versions )
+    rgi_db = UNTAR.out.untar.map{ it[1] }
+
+    // 
+    // MODULE: Run RGI Card Annotation
+    //
+    RGI_CARDANNOTATION (
+        rgi_db
+    )
+    ch_versions = ch_versions.mix(RGI_CARDANNOTATION.out.versions)
+
+    //
+    // MODULE: Run RGI Main
+    //
+    RGI_MAIN (
+        SEQKIT_FQ2FA.out.fasta,
+        RGI_CARDANNOTATION.out.db,
+        []
+    )
+    ch_versions = ch_versions.mix(RGI_MAIN.out.versions)
 
     // Make tuple for fasta input with id and path from parameters
     ch_fasta = Channel.value([[id:'input_genome_fasta'], params.fasta])
-
 
     // Check if BWA-MEM2 index is provided
     if (!params.bwamem2_index) {
@@ -152,24 +179,8 @@ workflow CANCERMICRO {
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
 
-    // //
-    // // MODULE: Run fargene
-    // //
-    // FARGENE (
-    //     SAMTOOLS_FASTQ.out.fastq,
-    //     "class_a,"
-    // )
-    // ch_versions = ch_versions.mix(FARGENE.out.versions)
-
-    // Fargene code from other pipeline:
-    // fastas      // tuple val(meta), path(contigs)
-    // equals samtoolsfastq out: tuple val(meta), path("*_{1,2}.fastq")
-
     // copy of SAMTOOLS_FASTQ.out.fastq for fastas:
     fastas = SAMTOOLS_FASTQ.out.fastq 
-
-    // hamro input channel prep
-    ch_input_to_hamronization_summarize = Channel.empty()
 
     // fARGene run
     if ( !params.arg_skip_fargene ) {
@@ -192,11 +203,8 @@ workflow CANCERMICRO {
             ch_fargene_input.fastas, 
             ch_fargene_input.hmmclass
         )
-        ch_versions = ch_versions.mix( FARGENE.out.versions )
+        ch_versions = ch_versions.mix(FARGENE.out.versions)
     }
-
-    FARGENE.out.hmm_genes.view()
-
 
     // KRAKEN2_SBUILD does not yet work as expected so commented out for now
 
@@ -240,6 +248,7 @@ workflow CANCERMICRO {
     KRAKENTOOLS_KREPORT2KRONA (
         KRAKEN2_KRAKEN2.out.report
     )
+    ch_versions = ch_versions.mix(KRAKENTOOLS_KREPORT2KRONA.out.versions)
 
     // Bracken_build commented out as long as Kraken2_SBUILD does not work
 
@@ -270,14 +279,14 @@ workflow CANCERMICRO {
     // MODULE: Run Kraken-biom on Kraken2 kreports COMBINED
     KRAKENBIOM_COM_KR (
         ch_kreports,
-        "Kraken2"
+        "kraken2"
     )
     ch_versions = ch_versions.mix(KRAKENBIOM_COM_KR.out.versions)
 
     // MODULE: Run Kraken-biom on bracken kreports COMBINED
     KRAKENBIOM_COM_BR (
         ch_br_kreports,
-        "Bracken"
+        "bracken"
     )
     ch_versions = ch_versions.mix(KRAKENBIOM_COM_BR.out.versions)
 
