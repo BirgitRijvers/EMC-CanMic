@@ -18,7 +18,6 @@ include { KRAKENTOOLS_KREPORT2KRONA                           } from '../modules
 include { BRACKEN_BRACKEN                                     } from '../modules/nf-core/bracken/bracken/main'
 include { FARGENE                                             } from '../modules/nf-core/fargene/main'
 include { UNTAR                                               } from '../modules/nf-core/untar/main'
-include { SEQTK_FQTOFA                                        } from '../modules/local/seqtk/fqtofa/main'
 include { SEQKIT_FQ2FA                                        } from '../modules/nf-core/seqkit/fq2fa/main'
 include { RGI_CARDANNOTATION                                  } from '../modules/nf-core/rgi/cardannotation/main.nf'
 include { RGI_MAIN                                            } from '../modules/nf-core/rgi/main/main.nf'
@@ -183,8 +182,8 @@ workflow CANCERMICRO {
     fastas = SAMTOOLS_FASTQ.out.fastq 
 
     // fARGene run
-    if ( !params.arg_skip_fargene ) {
-        ch_fargene_classes = Channel.fromList( params.arg_fargene_hmmmodel.tokenize(',') )
+    if ( !params.skip_fargene ) {
+        ch_fargene_classes = Channel.fromList( params.fargene_hmmmodel.tokenize(',') )
 
         ch_fargene_input = fastas
                             .combine( ch_fargene_classes )

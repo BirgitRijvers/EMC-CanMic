@@ -171,12 +171,6 @@
                     "fa_icon": "fas fa-question-circle",
                     "hidden": true
                 },
-                "version": {
-                    "type": "boolean",
-                    "description": "Display version and exit.",
-                    "fa_icon": "fas fa-question-circle",
-                    "hidden": true
-                },
                 "publish_dir_mode": {
                     "type": "string",
                     "default": "copy",
@@ -301,33 +295,15 @@
         }
     ],
     "properties": {
-        "arg_skip_fargene": {
+        "skip_fargene": {
             "type": "boolean"
         },
-        "arg_fargene_hmmmodel": {
+        "fargene_hmmmodel": {
             "type": "string",
             "default": "class_a,class_b_1_2,class_b_3,class_c,class_d_1,class_d_2,qnr,tet_efflux,tet_rpg,tet_enzyme"
         },
-        "arg_fargene_savetmpfiles": {
+        "version": {
             "type": "boolean"
-        },
-        "arg_fargene_minorflength": {
-            "type": "integer",
-            "default": 90
-        },
-        "arg_fargene_score": {
-            "type": "string"
-        },
-        "arg_fargene_translationformat": {
-            "type": "string",
-            "default": "pearson"
-        },
-        "arg_fargene_orffinder": {
-            "type": "boolean"
-        },
-        "arg_hamronization_summarizeformat": {
-            "type": "string",
-            "default": "tsv"
         }
     }
 }
