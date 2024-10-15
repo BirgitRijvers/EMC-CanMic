@@ -8,20 +8,23 @@ Update introduction as pipeline changes!
 The steps performed by the EMC-CanMic pipeline are shown in the figure below:
 
 <!-- TODO nf-core: Update metrochart to final version!   -->
-![Metrochart_pipeline_no_Q2](https://github.com/BirgitRijvers/emc-cancermicro/assets/126883391/a72e2de0-ac23-4bf6-a13b-ad0b1031c663)
+![Metrochart final-final_no_Q2 drawio](https://github.com/BirgitRijvers/EMC-CanMic/assets/126883391/399f7076-818c-4ade-855c-880ccb413ff8)
+
 
 <!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
 And include the following:
 
 1. Quality control ([`Fastp`](https://github.com/OpenGene/fastp))
 2. Filter out reads mapping to GRCh38 ([`BWA-MEM2`](https://github.com/bwa-mem2/bwa-mem2) and [`Samtools`](https://www.htslib.org/doc/samtools-view.html))
-3. Summarize mapping statistics (`Samtools`[https://www.htslib.org/doc/samtools-flagstat.html])
+3. Summarize mapping statistics ([`Samtools`](https://www.htslib.org/doc/samtools-flagstat.html))
 4. Convert SAM file to FASTQ ([`Samtools`](https://www.htslib.org/doc/samtools-fasta.html))
 5. Taxonomic classification ([`Kraken2`](https://github.com/DerrickWood/kraken2))
 6. Re-estimation of abundances ([`Bracken`](https://github.com/jenniferlu717/Bracken))
 7. Convert Kreport to BIOM ([`Kraken-biom`](https://github.com/smdabdoub/kraken-biom))
 8. Generate report with quality metrics and used tools ([`MultiQC`](https://github.com/MultiQC/MultiQC))
 
+## Installation
+To use EMC-CanMic on your machine, clone this GitHub repository. 
 
 ## Usage
 
