@@ -1,7 +1,7 @@
-name: krakenbiom_combined
-description: Takes Kraken2 report files and prints out a BIOM formatted file
+name: krakenbiom_krakenbiom
+description: Takes Kraken report files and prints out a BIOM formatted file.
 keywords:
-  - kraken2
+  - kraken
   - biom
   - metagenomics
   - taxonomy

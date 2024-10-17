@@ -13,6 +13,7 @@ include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
 include { KRAKEN2_BUILDSTANDARD  } from '../modules/nf-core/kraken2/buildstandard/main'
 include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
 include { KRAKENTOOLS_KREPORT2KRONA } from '../modules/nf-core/krakentools/kreport2krona/main'
+include { KRAKENBIOM_KRAKENBIOM  } from '../modules/local/krakenbiom/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -138,7 +139,17 @@ workflow METAMICROBES {
     )
     ch_versions = ch_versions.mix(KRAKENTOOLS_KREPORT2KRONA.out.versions)
 
-
+    // Create channel with Kraken2 reports list
+    ch_kreports = KRAKEN2_KRAKEN2.out.report.map {it[1]}.toList()
+    
+    //
+    // MODULE: Run Kraken-biom
+    //
+    KRAKENBIOM_KRAKENBIOM (
+        ch_kreports,
+        kraken2
+    )
+    ch_versions = ch_versions.mix(KRAKENBIOM_KRAKENBIOM.out.versions)
 
     //
     // Collate and save software versions
