@@ -147,7 +147,7 @@ workflow METAMICROBES {
     //
     KRAKENBIOM_KRAKENBIOM (
         ch_kreports,
-        kraken2
+        "kraken2"
     )
     ch_versions = ch_versions.mix(KRAKENBIOM_KRAKENBIOM.out.versions)
 

@@ -1,4 +1,4 @@
-process KRAKENBIOM_COMBINED {
+process KRAKENBIOM_KRAKENBIOM {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
