@@ -10,6 +10,9 @@ include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
 include { BWAMEM2_INDEX          } from '../modules/nf-core/bwamem2/index/main'
 include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
+include { KRAKEN2_BUILDSTANDARD  } from '../modules/nf-core/kraken2/buildstandard/main'
+include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
+include { KRAKENTOOLS_KREPORT2KRONA } from '../modules/nf-core/krakentools/kreport2krona/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -100,6 +103,41 @@ workflow METAMICROBES {
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
     
+    // Check if Kraken2 database is provided
+    if (!params.kraken2_db) {
+        //
+        // MODULE: Run Kraken2 build standard database
+        //
+        KRAKEN2_BUILDSTANDARD (
+            false
+        )
+        ch_versions = ch_versions.mix(KRAKEN2_BUILDSTANDARD.out.versions)
+        // Add built Kraken2 database to channel
+        ch_kraken2_db = KRAKEN2_BUILDSTANDARD.out.db
+    } else {
+            // Use provided Kraken2 database
+            ch_kraken2_db = Channel.value([params.kraken2_db])
+    }
+
+    //
+    // MODULE: Run Kraken2 (Confidence set to --confidence 0.05 in modules.config)
+    //
+    KRAKEN2_KRAKEN2 (
+        SAMTOOLS_FASTQ.out.fastq,
+        ch_kraken2_db,
+        false,
+        false
+    )
+    ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions.first())
+    
+    //
+    // MODULE: Run KrakenTools kreport2krona
+    //
+    KRAKENTOOLS_KREPORT2KRONA (
+        KRAKEN2_KRAKEN2.out.report
+    )
+    ch_versions = ch_versions.mix(KRAKENTOOLS_KREPORT2KRONA.out.versions)
+
     //
     // Collate and save software versions
     //
