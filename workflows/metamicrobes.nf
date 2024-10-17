@@ -9,7 +9,7 @@ include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
 include { BWAMEM2_INDEX          } from '../modules/nf-core/bwamem2/index/main'
-
+include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -91,6 +91,15 @@ workflow METAMICROBES {
     )
     ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions.first())
 
+    //
+    // MODULE: Run Samtools fastq on BWA-MEM2 output
+    //
+    SAMTOOLS_FASTQ (
+        BWAMEM2_MEM.out.bam,
+        false
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
+    
     //
     // Collate and save software versions
     //
