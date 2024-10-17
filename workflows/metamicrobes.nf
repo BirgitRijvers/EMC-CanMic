@@ -138,6 +138,8 @@ workflow METAMICROBES {
     )
     ch_versions = ch_versions.mix(KRAKENTOOLS_KREPORT2KRONA.out.versions)
 
+
+
     //
     // Collate and save software versions
     //
