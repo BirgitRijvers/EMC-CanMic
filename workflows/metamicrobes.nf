@@ -7,10 +7,23 @@
 include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
+include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
+include { BWAMEM2_INDEX          } from '../modules/nf-core/bwamem2/index/main'
+
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_metamicrobes_pipeline'
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    VALIDATE PARAMS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+if(params.fasta){
+    ch_fasta = Channel.fromPath(params.fasta, checkIfExists: true).collect()
+        .map{ it -> [[id:it[0].getSimpleName()], it[0]]}
+}
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,10 +57,39 @@ workflow METAMICROBES {
         ch_samplesheet,
         [],
         false,
+        false,
         false
     )
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]})
     ch_versions = ch_versions.mix(FASTP.out.versions)
+
+    // Check if BWA-MEM2 index is provided
+    if (!params.bwamem2_index) {
+        //
+        // MODULE: Run BWA-MEM2 index on provided fasta
+        //
+        BWAMEM2_INDEX (
+            ch_fasta
+        )
+        ch_versions = ch_versions.mix(BWAMEM2_INDEX.out.versions)
+        ch_bwamem2_index = BWAMEM2_INDEX.out.index
+    }
+    else {
+        // Use provided BWA-MEM2 index
+        ch_bwamem2_index = Channel.value([[id:'input_genome_index'], params.bwamem2_index])
+    }
+
+    //
+    // MODULE: Run BWA-MEM2
+    //
+    // Extra args for BWA-MEM2 are passed in 'modules.config' to save only unmapped readpairs
+    BWAMEM2_MEM (
+        FASTP.out.reads,
+        ch_bwamem2_index,
+        ch_fasta,
+        false
+    )
+    ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions.first())
 
     //
     // Collate and save software versions
