@@ -21,6 +21,13 @@ include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_meta
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    IMPORT LOCAL MODULES/SUBWORKFLOWS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+include { QIIME2                 } from '../subworkflows/local/qiime2'
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     VALIDATE PARAMS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
@@ -150,6 +157,14 @@ workflow METAMICROBES {
         "kraken2"
     )
     ch_versions = ch_versions.mix(KRAKENBIOM_KRAKENBIOM.out.versions)
+
+    // Run Q2 subworkflow on Kraken2 outputs if specified
+    if (params.qiime2) {
+        QIIME2(
+            KRAKENBIOM_KRAKENBIOM.out.biom
+        )
+        ch_versions = ch_versions.mix(QIIME2.out.versions)
+    }
 
     //
     // Collate and save software versions

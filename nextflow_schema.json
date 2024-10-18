@@ -272,6 +272,26 @@
         },
         "kraken2_db": {
             "type": "string"
+        },
+        "qiime2": {
+            "type": "boolean",
+            "default": true
+        },
+        "whitelist": {
+            "type": "string",
+            "default": "/home/birgit/programs/EMC-metamicrobes/whitelist.csv"
+        },
+        "blacklist": {
+            "type": "string",
+            "default": "/home/birgit/programs/EMC-metamicrobes/blacklist.csv"
+        },
+        "sampling_depth": {
+            "type": "integer",
+            "default": 5000
+        },
+        "metadata": {
+            "type": "string",
+            "default": "/home/birgit/metadata_all_CRC.tsv"
         }
     }
 }
