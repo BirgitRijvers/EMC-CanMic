@@ -26,7 +26,8 @@ And include the following:
 11. Calculate alpha and beta diversity metrics ([`QIIME2`](https://qiime2.org/))
 
 The final design of the fully developed pipeline is visualized in the figure below:
-![Metrochart_pipeline_with_MQC](https://github.com/user-attachments/assets/5df4639e-7ad2-48cc-a57e-c63af03df651)
+![Metrochart_CanMic_overview-horizontal_mqc_amr_q2 drawio](https://github.com/user-attachments/assets/dcddbeb0-c762-41aa-8bfe-00da4e33e126)
+
 
 ## Usage
 
