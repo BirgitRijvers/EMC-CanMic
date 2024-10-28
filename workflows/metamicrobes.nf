@@ -14,6 +14,8 @@ include { KRAKEN2_BUILDSTANDARD  } from '../modules/nf-core/kraken2/buildstandar
 include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
 include { KRAKENTOOLS_KREPORT2KRONA } from '../modules/nf-core/krakentools/kreport2krona/main'
 include { KRAKENBIOM_KRAKENBIOM  } from '../modules/local/krakenbiom/main'
+include { BRACKEN_BUILD          } from '../modules/nf-core/bracken/build/main'
+include { BRACKEN_BRACKEN        } from '../modules/nf-core/bracken/bracken/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -148,6 +150,33 @@ workflow METAMICROBES {
 
     // Create channel with Kraken2 reports list
     ch_kreports = KRAKEN2_KRAKEN2.out.report.map {it[1]}.toList()
+
+// Check if Bracken database is provided
+    if (!params.bracken_db) {
+        // Create channel with built Kraken2 database and meta id
+        ch_kraken2_db_path = ch_kraken2_db.map{it}
+        ch_bracken_index = ch_kraken2_db_path.map { db_path -> tuple([id: 'kraken2_db_for_bracken'], db_path) }
+        //
+        // MODULE: Run Bracken build 
+        //
+        BRACKEN_BUILD (
+            ch_bracken_index
+        )
+        ch_versions = ch_versions.mix(BRACKEN_BUILD.out.versions)
+        // Extract second item from tuple channel
+        ch_bracken_db = BRACKEN_BUILD.out.db.map {it[1]}
+    } else {
+            // Use provided Bracken database
+            ch_bracken_db = Channel.value([params.bracken_db])
+    }
+    //
+    // MODULE: Run Bracken
+    //
+    BRACKEN_BRACKEN (
+        KRAKEN2_KRAKEN2.out.report,
+        ch_bracken_db
+    )
+    ch_versions = ch_versions.mix(BRACKEN_BRACKEN.out.versions)
     
     //
     // MODULE: Run Kraken-biom

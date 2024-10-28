@@ -292,6 +292,9 @@
         "metadata": {
             "type": "string",
             "default": "/home/birgit/metadata_all_CRC.tsv"
+        },
+        "bracken_db": {
+            "type": "string"
         }
     }
 }
