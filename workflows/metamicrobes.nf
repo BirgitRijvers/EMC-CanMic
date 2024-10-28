@@ -12,8 +12,9 @@ include { BWAMEM2_INDEX          } from '../modules/nf-core/bwamem2/index/main'
 include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
 include { KRAKEN2_BUILDSTANDARD  } from '../modules/nf-core/kraken2/buildstandard/main'
 include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
-include { KRAKENTOOLS_KREPORT2KRONA } from '../modules/nf-core/krakentools/kreport2krona/main'
-include { KRAKENBIOM_KRAKENBIOM  } from '../modules/local/krakenbiom/main'
+include { KRAKENTOOLS_KREPORT2KRONA              } from '../modules/nf-core/krakentools/kreport2krona/main'
+include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_KR } from '../modules/local/krakenbiom/main'
+include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_BR } from '../modules/local/krakenbiom/main'
 include { BRACKEN_BUILD          } from '../modules/nf-core/bracken/build/main'
 include { BRACKEN_BRACKEN        } from '../modules/nf-core/bracken/bracken/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
@@ -26,7 +27,8 @@ include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_meta
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { QIIME2                 } from '../subworkflows/local/qiime2'
+include { QIIME2 as QIIME2_KRAKEN2                            } from '../subworkflows/local/qiime2'
+include { QIIME2 as QIIME2_BRACKEN                            } from '../subworkflows/local/qiime2'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -178,21 +180,37 @@ workflow METAMICROBES {
     )
     ch_versions = ch_versions.mix(BRACKEN_BRACKEN.out.versions)
     
+    // Create channel with Bracken reports list
+    ch_br_kreports = BRACKEN_BRACKEN.out.txt.map { it[1] }.toList()
+
     //
-    // MODULE: Run Kraken-biom
+    // MODULE: Run Kraken-biom on Kraken2 reports
     //
-    KRAKENBIOM_KRAKENBIOM (
+    KRAKENBIOM_KR (
         ch_kreports,
         "kraken2"
     )
-    ch_versions = ch_versions.mix(KRAKENBIOM_KRAKENBIOM.out.versions)
+    ch_versions = ch_versions.mix(KRAKENBIOM_KR.out.versions)
 
-    // Run Q2 subworkflow on Kraken2 outputs if specified
+    //
+    // MODULE: Run Kraken-biom on Bracken reports
+    //
+    KRAKENBIOM_BR (
+        ch_br_kreports,
+        "bracken"
+    )
+    ch_versions = ch_versions.mix(KRAKENBIOM_BR.out.versions)
+
+    // Run Q2 subworkflow on Kraken2 and Bracken outputs if specified
     if (params.qiime2) {
-        QIIME2(
-            KRAKENBIOM_KRAKENBIOM.out.biom
+        QIIME2_KRAKEN2 (
+            KRAKENBIOM_KR.out.biom
         )
-        ch_versions = ch_versions.mix(QIIME2.out.versions)
+        ch_versions = ch_versions.mix(QIIME2_KRAKEN2.out.versions)
+        QIIME2_BRACKEN (
+            KRAKENBIOM_BR.out.biom
+        )
+        ch_versions = ch_versions.mix(QIIME2_BRACKEN.out.versions)
     }
 
     //
