@@ -10,6 +10,7 @@ include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
 include { BWAMEM2_INDEX          } from '../modules/nf-core/bwamem2/index/main'
 include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
+include { SAMTOOLS_FASTQ_NOGZIP  } from '../modules/local/samtools/fastqnogzip/main'
 include { KRAKEN2_BUILDSTANDARD  } from '../modules/nf-core/kraken2/buildstandard/main'
 include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
 include { KRAKENTOOLS_KREPORT2KRONA              } from '../modules/nf-core/krakentools/kreport2krona/main'
@@ -17,6 +18,11 @@ include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_KR } from '../modules/local/kraken
 include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_BR } from '../modules/local/krakenbiom/main'
 include { BRACKEN_BUILD          } from '../modules/nf-core/bracken/build/main'
 include { BRACKEN_BRACKEN        } from '../modules/nf-core/bracken/bracken/main'
+include { FARGENE                } from '../modules/nf-core/fargene/main'
+include { UNTAR                  } from '../modules/nf-core/untar/main'
+include { SEQKIT_FQ2FA           } from '../modules/nf-core/seqkit/fq2fa/main'
+include { RGI_CARDANNOTATION     } from '../modules/nf-core/rgi/cardannotation/main.nf'
+include { RGI_MAIN               } from '../modules/nf-core/rgi/main/main.nf'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -114,6 +120,77 @@ workflow METAMICROBES {
         false
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
+
+    //
+    // MODULE: Run Samtools fastq on BWA-MEM2 output
+    //
+    SAMTOOLS_FASTQ_NOGZIP (
+        BWAMEM2_MEM.out.bam,
+        false
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_FASTQ_NOGZIP.out.versions)
+
+    //
+    // MODULE: Run Seqkit FQ2FA
+    //
+    SEQKIT_FQ2FA (
+        FASTP.out.reads
+    )
+    ch_versions = ch_versions.mix(SEQKIT_FQ2FA.out.versions)
+
+    // 
+    // MODULE: Download and untar CARD database for RGI
+    //
+    UNTAR( 
+        [ [], file('https://card.mcmaster.ca/latest/data', checkIfExists: true) ] 
+    )
+    ch_versions = ch_versions.mix(UNTAR.out.versions)
+
+    // Create channel with unzipped RGI database
+    rgi_db = UNTAR.out.untar.map{ it[1] }
+
+    // 
+    // MODULE: Run RGI Card Annotation
+    //
+    RGI_CARDANNOTATION (
+        rgi_db
+    )
+    ch_versions = ch_versions.mix(RGI_CARDANNOTATION.out.versions)
+
+    //
+    // MODULE: Run RGI Main
+    //
+    RGI_MAIN (
+        SEQKIT_FQ2FA.out.fasta,
+        RGI_CARDANNOTATION.out.db,
+        []
+    )
+    ch_versions = ch_versions.mix(RGI_MAIN.out.versions)
+
+    // Create channel with fARGene model classes
+    ch_fargene_classes = Channel.fromList(params.fargene_hmmmodel.tokenize(','))
+
+    // Format input for fARGene
+    ch_fargene_input = SAMTOOLS_FASTQ_NOGZIP.out.fastq 
+                        .combine(ch_fargene_classes)
+                        .map {
+                            meta, fastas, hmm_class ->
+                                def meta_new = meta.clone()
+                                meta_new['hmm_class'] = hmm_class
+                            [ meta_new, fastas, hmm_class ]
+                        }
+                        .multiMap {
+                            fastas: [ it[0], it[1] ]
+                            hmmclass: it[2]
+                        }
+    // 
+    // MODULE: Run FARGene
+    //
+    FARGENE (
+        ch_fargene_input.fastas, 
+        ch_fargene_input.hmmclass
+    )
+    ch_versions = ch_versions.mix(FARGENE.out.versions)
     
     // Check if Kraken2 database is provided
     if (!params.kraken2_db) {
@@ -153,7 +230,16 @@ workflow METAMICROBES {
     // Create channel with Kraken2 reports list
     ch_kreports = KRAKEN2_KRAKEN2.out.report.map {it[1]}.toList()
 
-// Check if Bracken database is provided
+    //
+    // MODULE: Run Kraken-biom on Kraken2 reports
+    //
+    KRAKENBIOM_KR (
+        ch_kreports,
+        "kraken2"
+    )
+    ch_versions = ch_versions.mix(KRAKENBIOM_KR.out.versions)
+
+    // Check if Bracken database is provided
     if (!params.bracken_db) {
         // Create channel with built Kraken2 database and meta id
         ch_kraken2_db_path = ch_kraken2_db.map{it}
@@ -171,6 +257,7 @@ workflow METAMICROBES {
             // Use provided Bracken database
             ch_bracken_db = Channel.value([params.bracken_db])
     }
+    
     //
     // MODULE: Run Bracken
     //
@@ -182,15 +269,6 @@ workflow METAMICROBES {
     
     // Create channel with Bracken reports list
     ch_br_kreports = BRACKEN_BRACKEN.out.txt.map { it[1] }.toList()
-
-    //
-    // MODULE: Run Kraken-biom on Kraken2 reports
-    //
-    KRAKENBIOM_KR (
-        ch_kreports,
-        "kraken2"
-    )
-    ch_versions = ch_versions.mix(KRAKENBIOM_KR.out.versions)
 
     //
     // MODULE: Run Kraken-biom on Bracken reports
@@ -212,6 +290,7 @@ workflow METAMICROBES {
         )
         ch_versions = ch_versions.mix(QIIME2_BRACKEN.out.versions)
     }
+
 
     //
     // Collate and save software versions
