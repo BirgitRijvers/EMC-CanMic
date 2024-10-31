@@ -13,12 +13,14 @@ include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
 include { SAMTOOLS_FASTQ_NOGZIP  } from '../modules/local/samtools/fastqnogzip/main'
 include { KRAKEN2_BUILDSTANDARD  } from '../modules/nf-core/kraken2/buildstandard/main'
 include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
-include { KRAKENTOOLS_KREPORT2KRONA              } from '../modules/nf-core/krakentools/kreport2krona/main'
-include { KRONA_KTIMPORTTEXT     } from '../modules/nf-core/krona/ktimporttext/main'
-include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_KR } from '../modules/local/krakenbiom/main'
-include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_BR } from '../modules/local/krakenbiom/main'
+include { KRAKENTOOLS_KREPORT2KRONA as KRAKENTOOLS_KRAKEN2_KREPORT2KRONA } from '../modules/nf-core/krakentools/kreport2krona/main'
+include { KRONA_KTIMPORTTEXT as KRONA_KRAKEN2_KTIMPORTTEXT               } from '../modules/nf-core/krona/ktimporttext/main'
+include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_KR                         } from '../modules/local/krakenbiom/main'
 include { BRACKEN_BUILD          } from '../modules/nf-core/bracken/build/main'
 include { BRACKEN_BRACKEN        } from '../modules/nf-core/bracken/bracken/main'
+include { KRAKENTOOLS_KREPORT2KRONA as KRAKENTOOLS_BRACKEN_KREPORT2KRONA } from '../modules/nf-core/krakentools/kreport2krona/main'
+include { KRONA_KTIMPORTTEXT as KRONA_BRACKEN_KTIMPORTTEXT               } from '../modules/nf-core/krona/ktimporttext/main'
+include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_BR                         } from '../modules/local/krakenbiom/main'
 include { FARGENE                } from '../modules/nf-core/fargene/main'
 include { UNTAR                  } from '../modules/nf-core/untar/main'
 include { SEQKIT_FQ2FA           } from '../modules/nf-core/seqkit/fq2fa/main'
@@ -221,20 +223,20 @@ workflow METAMICROBES {
     ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions.first())
     
     //
-    // MODULE: Run KrakenTools kreport2krona
+    // MODULE: Run KrakenTools kreport2krona on Kraken2 outputs for text report required for Krona plot
     //
-    KRAKENTOOLS_KREPORT2KRONA (
+    KRAKENTOOLS_KRAKEN2_KREPORT2KRONA (
         KRAKEN2_KRAKEN2.out.report
     )
-    ch_versions = ch_versions.mix(KRAKENTOOLS_KREPORT2KRONA.out.versions)
+    ch_versions = ch_versions.mix(KRAKENTOOLS_KRAKEN2_KREPORT2KRONA.out.versions)
 
     //
-    // MODULE: Run Krona ktimporttext
+    // MODULE: Run Krona ktimporttext to generate HTML krona plot of Kraken2 results
     //
-    KRONA_KTIMPORTTEXT (
-        KRAKENTOOLS_KREPORT2KRONA.out.txt
+    KRONA_KRAKEN2_KTIMPORTTEXT (
+        KRAKENTOOLS_KRAKEN2_KREPORT2KRONA.out.txt
     )
-    ch_versions = ch_versions.mix(KRONA_KTIMPORTTEXT.out.versions)
+    ch_versions = ch_versions.mix(KRONA_KRAKEN2_KTIMPORTTEXT.out.versions)
 
     // Create channel with Kraken2 reports list
     ch_kreports = KRAKEN2_KRAKEN2.out.report.map {it[1]}.toList()
@@ -275,6 +277,27 @@ workflow METAMICROBES {
         ch_bracken_db
     )
     ch_versions = ch_versions.mix(BRACKEN_BRACKEN.out.versions)
+
+
+    //
+    // MODULE: Run KrakenTools kreport2krona on Bracken for text report required for Krona plot
+    //
+    KRAKENTOOLS_BRACKEN_KREPORT2KRONA (
+        BRACKEN_BRACKEN.out.txt
+    )
+    ch_versions = ch_versions.mix(KRAKENTOOLS_BRACKEN_KREPORT2KRONA.out.versions)
+
+    //
+    // MODULE: Run Krona ktimporttext to generate HTML krona plot of Bracken results
+    //
+    KRONA_BRACKEN_KTIMPORTTEXT (
+        KRAKENTOOLS_BRACKEN_KREPORT2KRONA.out.txt
+    )
+    ch_versions = ch_versions.mix(KRONA_BRACKEN_KTIMPORTTEXT.out.versions)
+
+    // Create channel with Kraken2 reports list
+    ch_kreports = KRAKEN2_KRAKEN2.out.report.map {it[1]}.toList()
+
     
     // Create channel with Bracken reports list
     ch_br_kreports = BRACKEN_BRACKEN.out.txt.map { it[1] }.toList()
