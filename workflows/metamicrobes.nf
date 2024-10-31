@@ -14,6 +14,7 @@ include { SAMTOOLS_FASTQ_NOGZIP  } from '../modules/local/samtools/fastqnogzip/m
 include { KRAKEN2_BUILDSTANDARD  } from '../modules/nf-core/kraken2/buildstandard/main'
 include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
 include { KRAKENTOOLS_KREPORT2KRONA              } from '../modules/nf-core/krakentools/kreport2krona/main'
+include { KRONA_KTIMPORTTEXT     } from '../modules/nf-core/krona/ktimporttext/main'
 include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_KR } from '../modules/local/krakenbiom/main'
 include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_BR } from '../modules/local/krakenbiom/main'
 include { BRACKEN_BUILD          } from '../modules/nf-core/bracken/build/main'
@@ -122,7 +123,7 @@ workflow METAMICROBES {
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
 
     //
-    // MODULE: Run Samtools fastq on BWA-MEM2 output
+    // MODULE: Run Samtools fastq no gzip on BWA-MEM2 output, for fARGene
     //
     SAMTOOLS_FASTQ_NOGZIP (
         BWAMEM2_MEM.out.bam,
@@ -131,7 +132,7 @@ workflow METAMICROBES {
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ_NOGZIP.out.versions)
 
     //
-    // MODULE: Run Seqkit FQ2FA
+    // MODULE: Run Seqkit FQ2FA, needed for RGI
     //
     SEQKIT_FQ2FA (
         FASTP.out.reads
@@ -170,7 +171,7 @@ workflow METAMICROBES {
     // Create channel with fARGene model classes
     ch_fargene_classes = Channel.fromList(params.fargene_hmmmodel.tokenize(','))
 
-    // Format input for fARGene
+    // Format input for fARGene with uncompressed reads
     ch_fargene_input = SAMTOOLS_FASTQ_NOGZIP.out.fastq 
                         .combine(ch_fargene_classes)
                         .map {
@@ -226,6 +227,14 @@ workflow METAMICROBES {
         KRAKEN2_KRAKEN2.out.report
     )
     ch_versions = ch_versions.mix(KRAKENTOOLS_KREPORT2KRONA.out.versions)
+
+    //
+    // MODULE: Run Krona ktimporttext
+    //
+    KRONA_KTIMPORTTEXT (
+        KRAKENTOOLS_KREPORT2KRONA.out.txt
+    )
+    ch_versions = ch_versions.mix(KRONA_KTIMPORTTEXT.out.versions)
 
     // Create channel with Kraken2 reports list
     ch_kreports = KRAKEN2_KRAKEN2.out.report.map {it[1]}.toList()
