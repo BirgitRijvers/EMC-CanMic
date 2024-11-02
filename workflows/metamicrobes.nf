@@ -133,42 +133,42 @@ workflow METAMICROBES {
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ_NOGZIP.out.versions)
 
-    //
-    // MODULE: Run Seqkit FQ2FA, needed for RGI
-    //
-    SEQKIT_FQ2FA (
-        FASTP.out.reads
-    )
-    ch_versions = ch_versions.mix(SEQKIT_FQ2FA.out.versions)
+    // //
+    // // MODULE: Run Seqkit FQ2FA, needed for RGI
+    // //
+    // SEQKIT_FQ2FA (
+    //     FASTP.out.reads
+    // )
+    // ch_versions = ch_versions.mix(SEQKIT_FQ2FA.out.versions)
 
-    // 
-    // MODULE: Download and untar CARD database for RGI
-    //
-    UNTAR( 
-        [ [], file('https://card.mcmaster.ca/latest/data', checkIfExists: true) ] 
-    )
-    ch_versions = ch_versions.mix(UNTAR.out.versions)
+    // // 
+    // // MODULE: Download and untar CARD database for RGI
+    // //
+    // UNTAR( 
+    //     [ [], file('https://card.mcmaster.ca/latest/data', checkIfExists: true) ] 
+    // )
+    // ch_versions = ch_versions.mix(UNTAR.out.versions)
 
-    // Create channel with unzipped RGI database
-    rgi_db = UNTAR.out.untar.map{ it[1] }
+    // // Create channel with unzipped RGI database
+    // rgi_db = UNTAR.out.untar.map{ it[1] }
 
-    // 
-    // MODULE: Run RGI Card Annotation
-    //
-    RGI_CARDANNOTATION (
-        rgi_db
-    )
-    ch_versions = ch_versions.mix(RGI_CARDANNOTATION.out.versions)
+    // // 
+    // // MODULE: Run RGI Card Annotation
+    // //
+    // RGI_CARDANNOTATION (
+    //     rgi_db
+    // )
+    // ch_versions = ch_versions.mix(RGI_CARDANNOTATION.out.versions)
 
-    //
-    // MODULE: Run RGI Main
-    //
-    RGI_MAIN (
-        SEQKIT_FQ2FA.out.fasta,
-        RGI_CARDANNOTATION.out.db,
-        []
-    )
-    ch_versions = ch_versions.mix(RGI_MAIN.out.versions)
+    // //
+    // // MODULE: Run RGI Main
+    // //
+    // RGI_MAIN (
+    //     SEQKIT_FQ2FA.out.fasta,
+    //     RGI_CARDANNOTATION.out.db,
+    //     []
+    // )
+    // ch_versions = ch_versions.mix(RGI_MAIN.out.versions)
 
     // Create channel with fARGene model classes
     ch_fargene_classes = Channel.fromList(params.fargene_hmmmodel.tokenize(','))
