@@ -1,5 +1,5 @@
-name: samtools_fastq
-description: Converts a SAM/BAM/CRAM file to FASTQ
+name: samtools_fastq_nogzip
+description: Converts a SAM/BAM/CRAM file to uncompressed FASTQ
 keywords:
   - bam
   - sam

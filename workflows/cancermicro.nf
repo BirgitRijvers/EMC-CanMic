@@ -11,19 +11,17 @@ include { BWAMEM2_MEM                                         } from '../modules
 include { BWAMEM2_INDEX                                       } from '../modules/nf-core/bwamem2/index/main'
 include { SAMTOOLS_FASTQ                                      } from '../modules/local/samtools/fastq/main'
 include { SAMTOOLS_FASTQ as SAMTOOLS_FASTQ_GZIP               } from '../modules/nf-core/samtools/fastq/main'
-// include { KRAKEN2_SBUILD                                      } from '../modules/local/kraken2/sbuild/main'
+include { KRAKEN2_BUILDSTANDARD                               } from '../modules/nf-core/kraken2/buildstandard/main'
 include { KRAKEN2_KRAKEN2                                     } from '../modules/nf-core/kraken2/kraken2/main'
 include { KRAKENTOOLS_KREPORT2KRONA                           } from '../modules/nf-core/krakentools/kreport2krona/main'
-// include { BRACKEN_BUILD                                       } from '../modules/nf-core/bracken/build/main'
+include { BRACKEN_BUILD                                       } from '../modules/nf-core/bracken/build/main'
 include { BRACKEN_BRACKEN                                     } from '../modules/nf-core/bracken/bracken/main'
 include { FARGENE                                             } from '../modules/nf-core/fargene/main'
 include { UNTAR                                               } from '../modules/nf-core/untar/main'
 include { SEQKIT_FQ2FA                                        } from '../modules/nf-core/seqkit/fq2fa/main'
 include { RGI_CARDANNOTATION                                  } from '../modules/nf-core/rgi/cardannotation/main.nf'
 include { RGI_MAIN                                            } from '../modules/nf-core/rgi/main/main.nf'
-include { KRAKENBIOM_INDIVIDUAL as KRAKENBIOM_IND_KR          } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
 include { KRAKENBIOM_COMBINED   as KRAKENBIOM_COM_KR          } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
-include { KRAKENBIOM_INDIVIDUAL as KRAKENBIOM_IND_BR          } from '../modules/local/krakenbiom/krakenbiom_ind/main.nf'
 include { KRAKENBIOM_COMBINED   as KRAKENBIOM_COM_BR          } from '../modules/local/krakenbiom/krakenbiom_com/main.nf'
 include { paramsSummaryMap                                    } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc                                } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -35,7 +33,8 @@ include { methodsDescriptionText                              } from '../subwork
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { QIIME2                                              } from '../subworkflows/local/qiime2'
+include { QIIME2 as QIIME2_KRAKEN2                            } from '../subworkflows/local/qiime2'
+include { QIIME2 as QIIME2_BRACKEN                            } from '../subworkflows/local/qiime2'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,8 +88,6 @@ workflow CANCERMICRO {
     )
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]})
     ch_versions = ch_versions.mix(FASTP.out.versions)
-    // ch_reports = ch_reports.mix(FASTP.out.json.collect{ meta, json -> json })
-    // ch_reports = ch_reports.mix(FASTP.out.html.collect{ meta, html -> html })
 
     //
     // MODULE: Run Seqkit FQ2FA
@@ -101,12 +98,14 @@ workflow CANCERMICRO {
     ch_versions = ch_versions.mix(SEQKIT_FQ2FA.out.versions)
 
     // 
-    // MODULE: Download and untar CARD database
+    // MODULE: Download and untar CARD database for RGI
     //
     UNTAR( 
         [ [], file('https://card.mcmaster.ca/latest/data', checkIfExists: true) ] 
     )
-    ch_versions = ch_versions.mix( UNTAR.out.versions )
+    ch_versions = ch_versions.mix(UNTAR.out.versions)
+
+    // Create channel with unzipped RGI database
     rgi_db = UNTAR.out.untar.map{ it[1] }
 
     // 
@@ -156,15 +155,12 @@ workflow CANCERMICRO {
         false
     )
     ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions.first())
-    
-    ch_bam_copy1 = BWAMEM2_MEM.out.bam.map { it }
-    ch_bam_copy2 = BWAMEM2_MEM.out.bam.map { it }
 
     //
     // MODULE: Run Samtools fastq GZIP
     //
     SAMTOOLS_FASTQ_GZIP (
-        ch_bam_copy1,
+        BWAMEM2_MEM.out.bam,
         false
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ_GZIP.out.versions)
@@ -173,20 +169,17 @@ workflow CANCERMICRO {
     // MODULE: Run Samtools fastq uncompressed
     //
     SAMTOOLS_FASTQ (
-        ch_bam_copy2,
+        BWAMEM2_MEM.out.bam,
         false
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
 
-    // copy of SAMTOOLS_FASTQ.out.fastq for fastas:
-    fastas = SAMTOOLS_FASTQ.out.fastq 
+    // fARGene prep
+    if (!params.skip_fargene) {
+        ch_fargene_classes = Channel.fromList(params.fargene_hmmmodel.tokenize(','))
 
-    // fARGene run
-    if ( !params.skip_fargene ) {
-        ch_fargene_classes = Channel.fromList( params.fargene_hmmmodel.tokenize(',') )
-
-        ch_fargene_input = fastas
-                            .combine( ch_fargene_classes )
+        ch_fargene_input = SAMTOOLS_FASTQ.out.fastq 
+                            .combine(ch_fargene_classes)
                             .map {
                                 meta, fastas, hmm_class ->
                                     def meta_new = meta.clone()
@@ -197,7 +190,9 @@ workflow CANCERMICRO {
                                 fastas: [ it[0], it[1] ]
                                 hmmclass: it[2]
                             }
-
+        // 
+        // MODULE: Run FARGene
+        //
         FARGENE (
             ch_fargene_input.fastas, 
             ch_fargene_input.hmmclass
@@ -205,30 +200,21 @@ workflow CANCERMICRO {
         ch_versions = ch_versions.mix(FARGENE.out.versions)
     }
 
-    // KRAKEN2_SBUILD does not yet work as expected so commented out for now
-
-    // ch_kr_db = Channel.empty()
-    // ch_kr_db = Channel.value([[id:'kraken2_standard_db'], '/this_is_a_name'])
-
-    // // Check if Kraken2 database is provided
-    // if (!params.kraken2_db) {
-    //     //
-    //     // MODULE: Build Kraken2 standard database
-    //     //
-    //     KRAKEN2_SBUILD (
-    //         ch_kr_db,
-    //         'standard_tester_db',
-    //         true
-    //     )
-    //     ch_versions = ch_versions.mix(KRAKEN2_SBUILD.out.versions.first())
-    //     ch_kraken2_db = KRAKEN2_SBUILD.out.database
-    //     }
-    //     else {
-    //         // Use provided Kraken2 database
-    //         ch_kraken2_db = Channel.value([params.kraken2_db])
-    //     }
-
-    ch_kraken2_db = Channel.value([params.kraken2_db])
+    // Check if Kraken2 database is provided
+    if (!params.kraken2_db) {
+        //
+        // MODULE: Run Kraken2 build standard database
+        //
+        KRAKEN2_BUILDSTANDARD (
+            false
+        )
+        ch_versions = ch_versions.mix(KRAKEN2_BUILDSTANDARD.out.versions)
+        // Add built Kraken2 database to channel
+        ch_kraken2_db = KRAKEN2_BUILDSTANDARD.out.db
+    } else {
+            // Use provided Kraken2 database
+            ch_kraken2_db = Channel.value([params.kraken2_db])
+    }
 
     //
     // MODULE: Run Kraken2 (Confidence set to --confidence 0.05 in modules.config)
@@ -249,23 +235,47 @@ workflow CANCERMICRO {
     )
     ch_versions = ch_versions.mix(KRAKENTOOLS_KREPORT2KRONA.out.versions)
 
-    // Bracken_build commented out as long as Kraken2_SBUILD does not work
+    // Check if Bracken database is provided
+    if (!params.bracken_db) {
+        // // Create channel with built Kraken2 database and meta
+        // ch_bracken_index = Channel.value([[id:'kraken2_db_for_bracken'], ch_kraken2_db])
+        // ch_bracken_index.view()
+        // Extract path to Kraken2 database
+        ch_kraken2_db_path = ch_kraken2_db.map{it}
+        // Create channel with built Kraken2 database and meta
+        // ch_bracken_index = ch_kraken2_db_path.map { db_path -> tuple(val('kraken2_db_for_bracken'), path(db_path)) }
+        // ch_bracken_index = ch_kraken2_db_path.map { db_path -> tuple val('kraken2_db_for_bracken'), path|(db_path) }
+        // ch_bracken_index = ch_kraken2_db_path.map { db_path -> tuple('kraken2_db_for_bracken', db_path) }
+        ch_bracken_index = ch_kraken2_db_path.map { db_path -> tuple([id: 'kraken2_db_for_bracken'], db_path) }
+        // ch_brakcen_index has to look like this: tuple val(meta), path(db)
+        // meta should include id data because start of module looks like this:
+        // process BRACKEN_BUILD {
+        // tag "$meta.id"
+        // label 'process_high'
+        // input:
+        // tuple val(meta), path(kraken2db)
 
-    // //
-    // // MODULE: Build Bracken database
-    // //
-    // BRACKEN_BUILD (
-    //     ch_bracken_index
-    // )
 
-    ch_bracken_index = Channel.value([[id:'kr_db_br'], params.kraken2_db])
-
+        //
+        // MODULE: Run Bracken build 
+        //
+        BRACKEN_BUILD (
+            ch_bracken_index
+        )
+        ch_versions = ch_versions.mix(BRACKEN_BUILD.out.versions)
+        // Extract second item from tuple channel
+        ch_bracken_db = BRACKEN_BUILD.out.db.map {it[1]}
+    } else {
+            // Use provided Bracken database
+            ch_bracken_db = Channel.value([params.bracken_db])
+    }
+    ch_bracken_db.view()
     //
     // MODULE: Run Bracken
     //
     BRACKEN_BRACKEN (
         KRAKEN2_KRAKEN2.out.report,
-        ch_kraken2_db
+        ch_bracken_db
     )
     ch_versions = ch_versions.mix(BRACKEN_BRACKEN.out.versions)
 
@@ -289,28 +299,16 @@ workflow CANCERMICRO {
     )
     ch_versions = ch_versions.mix(KRAKENBIOM_COM_BR.out.versions)
 
-    //
-    // MODULE: Run Kraken-biom on Kraken2 kreports SEPARATELY
-    //
-    KRAKENBIOM_IND_KR (
-        KRAKEN2_KRAKEN2.out.report,
-        "kraken2"
-    )
-    ch_versions = ch_versions.mix(KRAKENBIOM_IND_KR.out.versions)
-    
-    // MODULE: Run Kraken-biom on Bracken kreports SEPARATELY
-    KRAKENBIOM_IND_BR (
-        BRACKEN_BRACKEN.out.txt,
-        "bracken"
-    )
-    ch_versions = ch_versions.mix(KRAKENBIOM_IND_BR.out.versions)
-
-    // Run subworkflow if specified
+    // Run Q2 subworkflow on Kraken2 and Bracken outputs if specified
     if (params.QIIME2) {
-    QIIME2 (
-        KRAKENBIOM_COM_KR.out.biom
-    )
-    ch_versions = ch_versions.mix(QIIME2.out.versions)
+        QIIME2_KRAKEN2 (
+            KRAKENBIOM_COM_KR.out.biom
+        )
+        ch_versions = ch_versions.mix(QIIME2_KRAKEN2.out.versions)
+        QIIME2_BRACKEN (
+            KRAKENBIOM_COM_BR.out.biom
+        )
+        ch_versions = ch_versions.mix(QIIME2_BRACKEN.out.versions)
     }
 
     //

@@ -42,7 +42,7 @@
                     "description": "Path to FASTA genome file.",
                     "help_text": "If you don't have a BWA index available this will be generated for you automatically.",
                     "fa_icon": "fas fa-dna",
-                    "default": "/mnt/FS2/data_2/Users/Birgit/GRCh38/GRCh38.fna.gz"
+                    "default": "/mnt/SCS/data_2/Users/Birgit/GRCh38/GRCh38.fna.gz"
                 },
                 "kraken2_db": {
                     "type": "string",
@@ -51,7 +51,6 @@
                 },
                 "bracken_db": {
                     "type": "string",
-                    "default": "/mnt/FS2/data_2/Users/Birgit/db_index/kraken2/standard/",
                     "fa_icon": "fas fa-database",
                     "description": "Path to directory with previously build standard Kraken2 AND Bracken database."
                 }
@@ -133,7 +132,7 @@
                 "max_cpus": {
                     "type": "integer",
                     "description": "Maximum number of CPUs that can be requested for any single job.",
-                    "default": 32,
+                    "default": 64,
                     "fa_icon": "fas fa-microchip",
                     "hidden": true,
                     "help_text": "Use to set an upper-limit for the CPU requirement for each process. Should be an integer e.g. `--max_cpus 1`"
@@ -141,7 +140,7 @@
                 "max_memory": {
                     "type": "string",
                     "description": "Maximum amount of memory that can be requested for any single job.",
-                    "default": "256.GB",
+                    "default": "512.GB",
                     "fa_icon": "fas fa-memory",
                     "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
                     "hidden": true,
