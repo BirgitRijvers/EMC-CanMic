@@ -158,44 +158,23 @@ def paramsSummaryMultiqc(summary_params) {
 }
 
 //
-// EMC-CanMic logo :)
+// nf-core logo
 //
-
 def nfCoreLogo(monochrome_logs=true) {
     Map colors = logColours(monochrome_logs)
     String.format(
-        """
-        ${colors.bigreen}
-        ${colors.blink}
-        ${dashedLineLong(monochrome_logs)}
-        ${colors.bicyan}O       o O       o O       o  ${colors.blue}_____ __  __  ____       ____            __  __ _      ${colors.bicyan}O       o O       o O       o${colors.reset}
-        ${colors.bicyan}| O   o | | O   o | | O   o | ${colors.blue}| ____|  \\/  |/ ___|     / ___|__ _ _ __ |  \\/  (_) ___ ${colors.bicyan}| O   o | | O   o | | O   o |${colors.reset}
-        ${colors.bicyan}| | O | | | | O | | | | O | | ${colors.blue}|  _| | |\\/| | |    ____| |   / _` | '_ \\| |\\/| | |/ __|${colors.bicyan}| | O | | | | O | | | | O | |${colors.reset}
-        ${colors.bicyan}| o   O | | o   O | | o   O | ${colors.blue}| |___| |  | | |___|____| |__| (_| | | | | |  | | | (__ ${colors.bicyan}| o   O | | o   O | | o   O |${colors.reset}
-        ${colors.bicyan}o       O o       O o       O ${colors.blue}|_____|_|  |_|\\____|     \\____\\__,_|_| |_|_|  |_|_|\\___|${colors.bicyan}o       O o       O o       O${colors.reset}
-        ${colors.bipurple}  ${workflow.manifest.name} ${getWorkflowVersion()}${colors.reset}
-        ${colors.bigreen}
-        ${colors.blink}
-        ${dashedLineLong(monochrome_logs)}
+        """\n
+        ${dashedLine(monochrome_logs)}
+                                                ${colors.green},--.${colors.black}/${colors.green},-.${colors.reset}
+        ${colors.blue}        ___     __   __   __   ___     ${colors.green}/,-._.--~\'${colors.reset}
+        ${colors.blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${colors.yellow}}  {${colors.reset}
+        ${colors.blue}  | \\| |       \\__, \\__/ |  \\ |___     ${colors.green}\\`-._,-`-,${colors.reset}
+                                                ${colors.green}`._,._,\'${colors.reset}
+        ${colors.purple}  ${workflow.manifest.name} ${getWorkflowVersion()}${colors.reset}
+        ${dashedLine(monochrome_logs)}
         """.stripIndent()
     )
 }
-
-// def nfCoreLogo(monochrome_logs=true) {
-//     Map colors = logColours(monochrome_logs)
-//     String.format(
-//         """\n
-//         ${dashedLine(monochrome_logs)}
-//                                                 ${colors.green},--.${colors.black}/${colors.green},-.${colors.reset}
-//         ${colors.blue}        ___     __   __   __   ___     ${colors.green}/,-._.--~\'${colors.reset}
-//         ${colors.blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${colors.yellow}}  {${colors.reset}
-//         ${colors.blue}  | \\| |       \\__, \\__/ |  \\ |___     ${colors.green}\\`-._,-`-,${colors.reset}
-//                                                 ${colors.green}`._,._,\'${colors.reset}
-//         ${colors.purple}  ${workflow.manifest.name} ${getWorkflowVersion()}${colors.reset}
-//         ${dashedLine(monochrome_logs)}
-//         """.stripIndent()
-//     )
-// }
 
 //
 // Return dashed line
@@ -203,14 +182,6 @@ def nfCoreLogo(monochrome_logs=true) {
 def dashedLine(monochrome_logs=true) {
     Map colors = logColours(monochrome_logs)
     return "-${colors.dim}----------------------------------------------------${colors.reset}-"
-}
-
-//
-// Return long dashed line
-//
-def dashedLineLong(monochrome_logs=true) {
-    Map colors = logColours(monochrome_logs)
-    return "${colors.dim}-------------------------------------------------------------------------------------------------------------------${colors.reset}"
 }
 
 //

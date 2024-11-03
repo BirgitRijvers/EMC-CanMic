@@ -17,7 +17,7 @@
                         "size": "Large",
                         "weight": "Bolder",
                         "color": "<% if (success) { %>Good<% } else { %>Attention<%} %>",
-                        "text": "emc/cancermicro v${version} - ${runName}",
+                        "text": "EMC/metamicrobes v${version} - ${runName}",
                         "wrap": true
                     },
                     {

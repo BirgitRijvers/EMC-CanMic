@@ -1,0 +1,44 @@
+name: krakenbiom_krakenbiom
+description: Takes Kraken report files and prints out a BIOM formatted file.
+keywords:
+  - kraken
+  - biom
+  - metagenomics
+  - taxonomy
+tools:
+  - krakenbiom:
+      description: Krakenbiom is a tool that converts Kraken/KrakenUniq/Kraken2/Bracken 
+        reports to BIOM format for post-analysis. It does not yet have a publication 
+        but is available on GitHub.
+      homepage: https://github.com/smdabdoub/kraken-biom
+      licence: ["MIT"]
+      identifier: biotools:krakenbiom
+input:
+  - - kreports:
+        type: path
+        description: |
+          Path to report files (.txt or .kreport), 
+          should be created from the output of 
+          your classification tool with 
+          *.out.*.map{it[1]}.toList().
+    - tool:
+        type: val
+        description: |
+          Tool used to generate the report files.
+          Used to distinguish between multiple
+          BIOM files.
+output:
+  - biom:
+      - meta:
+          type: path
+          description: |
+            Path to the BIOM file created by krakenbiom.
+  - versions:
+      - versions.yml:
+          type: file
+          description: File containing software versions
+          pattern: "versions.yml"
+authors:
+  - "@BirgitRijvers"
+maintainers:
+  - "@BirgitRijvers"

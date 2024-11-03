@@ -24,29 +24,19 @@ include { QIIME2_COREDIVERSITY as QIIME2_COREDIVERSITY_BLACK  } from '../../modu
 workflow QIIME2 {
 
     take:
-    // TODO nf-core: edit input (take) channels
-    // ch_bam // channel: [ val(meta), [ bam ] ]
-    KRAKENBIOM_COM_KR.out.biom
+    biom
 
     main:
-
     ch_versions = Channel.empty()
-
-    // TODO nf-core: substitute modules here for the modules of your subworkflow
-
-    // SAMTOOLS_SORT ( ch_bam )
-    // ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
-
-    // SAMTOOLS_INDEX ( SAMTOOLS_SORT.out.bam )
-    // ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
 
     //
     // MODULE: Run QIIME2 import
     //
     QIIME2_IMPORT (
-        KRAKENBIOM_COM_KR.out.biom
+        // KRAKENBIOM_COM_KR.out.biom
+        biom
     )
-    ch_versions = ch_versions.mix(QIIME2_IMPORT.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_IMPORT.out.versions)
 
     //
     // MODULE: Run QIIME2 feature-table summarize on raw data
@@ -54,7 +44,7 @@ workflow QIIME2 {
     QIIME2_SUMMARIZE (
         QIIME2_IMPORT.out.frequency
     )
-    ch_versions = ch_versions.mix(QIIME2_SUMMARIZE.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_SUMMARIZE.out.versions)
 
     //
     // MODULE: Run QIIME2 barplot on raw data
@@ -64,7 +54,7 @@ workflow QIIME2 {
         QIIME2_IMPORT.out.taxonomy,
         "raw"
     )
-    ch_versions = ch_versions.mix(QIIME2_BARPLOT_RAW.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_BARPLOT_RAW.out.versions)
 
     ch_whitelist = Channel.fromPath(params.whitelist).map { it.text.trim() }
 
@@ -76,7 +66,7 @@ workflow QIIME2 {
         QIIME2_IMPORT.out.taxonomy,
         ch_whitelist
     )
-    ch_versions = ch_versions.mix(QIIME2_FILTER_WHITELIST.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_FILTER_WHITELIST.out.versions)
 
     ch_blacklist = Channel.fromPath(params.blacklist).map { it.text.trim() }
 
@@ -88,7 +78,7 @@ workflow QIIME2 {
         QIIME2_IMPORT.out.taxonomy,
         ch_blacklist
     )
-    ch_versions = ch_versions.mix(QIIME2_FILTER_BLACKLIST.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_FILTER_BLACKLIST.out.versions)
     
     //
     // MODULE: Run QIIME2 barplot on whitelist filtered data
@@ -98,7 +88,7 @@ workflow QIIME2 {
         QIIME2_IMPORT.out.taxonomy,
         "filtered_white"
     )
-    ch_versions = ch_versions.mix(QIIME2_BARPLOT_FILTERED_WHITE.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_BARPLOT_FILTERED_WHITE.out.versions)
 
     //
     // MODULE: Run QIIME2 barplot on blacklist filtered data
@@ -108,7 +98,7 @@ workflow QIIME2 {
         QIIME2_IMPORT.out.taxonomy,
         "filtered_black"
     )
-    ch_versions = ch_versions.mix(QIIME2_BARPLOT_FILTERED_BLACK.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_BARPLOT_FILTERED_BLACK.out.versions)
 
     // 
     // MODULE: Run QIIME2 collapse on raw data
@@ -117,7 +107,7 @@ workflow QIIME2 {
         QIIME2_IMPORT.out.frequency,
         QIIME2_IMPORT.out.taxonomy
     )
-    ch_versions = ch_versions.mix(QIIME2_COLLAPSE_RAW.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_COLLAPSE_RAW.out.versions)
     
     // 
     // MODULE: Run QIIME2 collapse on whitelist filtered data
@@ -126,7 +116,7 @@ workflow QIIME2 {
         QIIME2_FILTER_WHITELIST.out.filtered_table,
         QIIME2_IMPORT.out.taxonomy,
     )
-    ch_versions = ch_versions.mix(QIIME2_COLLAPSE_WHITE.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_COLLAPSE_WHITE.out.versions)
 
     // 
     // MODULE: Run QIIME2 collapse on blacklist filtered data
@@ -135,7 +125,7 @@ workflow QIIME2 {
         QIIME2_FILTER_WHITELIST.out.filtered_table,
         QIIME2_IMPORT.out.taxonomy,
     )
-    ch_versions = ch_versions.mix(QIIME2_COLLAPSE_BLACK.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_COLLAPSE_BLACK.out.versions)
 
     //
     // MODULE: Run QIIME2 core diversity on raw data
@@ -146,7 +136,7 @@ workflow QIIME2 {
         params.metadata,
         "raw"
     )
-    ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_RAW.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_RAW.out.versions)
 
     //
     // MODULE: Run QIIME2 core diversity on whitelist filtered data
@@ -157,7 +147,7 @@ workflow QIIME2 {
         params.metadata,
         "white"
     )
-    ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_WHITE.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_WHITE.out.versions)
 
     //
     // MODULE: Run QIIME2 core diversity on blacklist filtered data
@@ -168,7 +158,7 @@ workflow QIIME2 {
         params.metadata,
         "black"
     )
-    ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_BLACK.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_BLACK.out.versions)
 
     //
     // MODULE: Run QIIME2 heatmap on raw data
@@ -178,7 +168,7 @@ workflow QIIME2 {
         QIIME2_IMPORT.out.taxonomy,
         "raw"
     )
-    ch_versions = ch_versions.mix(QIIME2_HEATMAP_RAW.out.versions.first())
+    ch_versions = ch_versions.mix(QIIME2_HEATMAP_RAW.out.versions)
 
     emit:
     // TODO nf-core: edit emitted channels
@@ -186,6 +176,6 @@ workflow QIIME2 {
     // bai      = SAMTOOLS_INDEX.out.bai          // channel: [ val(meta), [ bai ] ]
     // csi      = SAMTOOLS_INDEX.out.csi          // channel: [ val(meta), [ csi ] ]
 
+
     versions = ch_versions                     // channel: [ versions.yml ]
 }
-

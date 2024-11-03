@@ -1,10 +1,10 @@
 Run Name: $runName
 
 <% if (success){
-    out << "## emc/cancermicro execution completed successfully! ##"
+    out << "## EMC/metamicrobes execution completed successfully! ##"
 } else {
     out << """####################################################
-## emc/cancermicro execution completed unsuccessfully! ##
+## EMC/metamicrobes execution completed unsuccessfully! ##
 ####################################################
 The exit status of the task that caused the workflow execution to fail was: $exitStatus.
 The full error message was:
@@ -27,5 +27,5 @@ Pipeline Configuration:
 <% out << summary.collect{ k,v -> " - $k: $v" }.join("\n") %>
 
 --
-emc/cancermicro
-https://github.com/emc/cancermicro
+EMC/metamicrobes
+https://github.com/EMC/metamicrobes

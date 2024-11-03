@@ -1,4 +1,4 @@
-# emc/cancermicro: Output
+# EMC/metamicrobes: Output
 
 ## Introduction
 

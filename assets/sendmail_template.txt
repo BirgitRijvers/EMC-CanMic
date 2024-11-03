@@ -9,12 +9,12 @@ Content-Type: text/html; charset=utf-8
 $email_html
 
 --nfcoremimeboundary
-Content-Type: image/png;name="emc-cancermicro_logo.png"
+Content-Type: image/png;name="EMC-metamicrobes_logo.png"
 Content-Transfer-Encoding: base64
 Content-ID: <nfcorepipelinelogo>
-Content-Disposition: inline; filename="emc-cancermicro_logo_light.png"
+Content-Disposition: inline; filename="EMC-metamicrobes_logo_light.png"
 
-<% out << new File("$projectDir/assets/emc-cancermicro_logo_light.png").
+<% out << new File("$projectDir/assets/EMC-metamicrobes_logo_light.png").
     bytes.
     encodeBase64().
     toString().
