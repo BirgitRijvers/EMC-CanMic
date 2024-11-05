@@ -1,0 +1,4 @@
+sample,fastq_1,fastq_2
+97host_3mock,/home/birgit/programs/emc-cancermicro/testdata/97host_3mock_1.fastq.gz,/home/birgit/programs/emc-cancermicro/testdata/97host_3mock_2.fastq.gz
+70host_30mock,/home/birgit/programs/emc-cancermicro/testdata/70host_30mock_1.fastq.gz,/home/birgit/programs/emc-cancermicro/testdata/70host_30mock_2.fastq.gz
+0host_100mock,/home/birgit/programs/emc-cancermicro/testdata/0host_100mock_1.fastq.gz,/home/birgit/programs/emc-cancermicro/testdata/0host_100mock_2.fastq.gz
