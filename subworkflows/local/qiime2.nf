@@ -126,40 +126,7 @@ workflow QIIME2 {
         QIIME2_IMPORT.out.taxonomy,
     )
     ch_versions = ch_versions.mix(QIIME2_COLLAPSE_BLACK.out.versions)
-
-    //
-    // MODULE: Run QIIME2 core diversity on raw data
-    //
-    QIIME2_COREDIVERSITY_RAW (
-        QIIME2_COLLAPSE_RAW.out.collapsed_table,
-        params.sampling_depth,
-        params.metadata,
-        "raw"
-    )
-    ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_RAW.out.versions)
-
-    //
-    // MODULE: Run QIIME2 core diversity on whitelist filtered data
-    //
-    QIIME2_COREDIVERSITY_WHITE (
-        QIIME2_COLLAPSE_WHITE.out.collapsed_table,
-        params.sampling_depth,
-        params.metadata,
-        "white"
-    )
-    ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_WHITE.out.versions)
-
-    //
-    // MODULE: Run QIIME2 core diversity on blacklist filtered data
-    //
-    QIIME2_COREDIVERSITY_BLACK (
-        QIIME2_COLLAPSE_BLACK.out.collapsed_table,
-        params.sampling_depth,
-        params.metadata,
-        "black"
-    )
-    ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_BLACK.out.versions)
-
+    
     //
     // MODULE: Run QIIME2 heatmap on raw data
     //
@@ -169,6 +136,42 @@ workflow QIIME2 {
         "raw"
     )
     ch_versions = ch_versions.mix(QIIME2_HEATMAP_RAW.out.versions)
+
+    // If metadata is supplied, run core diversity on raw, whitelist, and blacklist filtered data
+    if (params.metadata != null) {
+        //
+        // MODULE: Run QIIME2 core diversity on raw data
+        //
+        QIIME2_COREDIVERSITY_RAW (
+            QIIME2_COLLAPSE_RAW.out.collapsed_table,
+            params.sampling_depth,
+            params.metadata,
+            "raw"
+        )
+        ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_RAW.out.versions)
+
+        //
+        // MODULE: Run QIIME2 core diversity on whitelist filtered data
+        //
+        QIIME2_COREDIVERSITY_WHITE (
+            QIIME2_COLLAPSE_WHITE.out.collapsed_table,
+            params.sampling_depth,
+            params.metadata,
+            "white"
+        )
+        ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_WHITE.out.versions)
+
+        //
+        // MODULE: Run QIIME2 core diversity on blacklist filtered data
+        //
+        QIIME2_COREDIVERSITY_BLACK (
+            QIIME2_COLLAPSE_BLACK.out.collapsed_table,
+            params.sampling_depth,
+            params.metadata,
+            "black"
+        )
+        ch_versions = ch_versions.mix(QIIME2_COREDIVERSITY_BLACK.out.versions)
+    }
 
     emit:
     // TODO nf-core: edit emitted channels
