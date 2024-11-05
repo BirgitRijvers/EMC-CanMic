@@ -11,6 +11,7 @@ include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
 include { BWAMEM2_INDEX          } from '../modules/nf-core/bwamem2/index/main'
 include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
 include { SAMTOOLS_FASTQ_NOGZIP  } from '../modules/local/samtools/fastqnogzip/main'
+include { SAMTOOLS_FLAGSTAT      } from '../modules/local/samtools/flagstat/main'
 include { KRAKEN2_BUILDSTANDARD  } from '../modules/nf-core/kraken2/buildstandard/main'
 include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
 include { KRAKENTOOLS_KREPORT2KRONA as KRAKENTOOLS_KRAKEN2_KREPORT2KRONA } from '../modules/nf-core/krakentools/kreport2krona/main'
@@ -114,6 +115,15 @@ workflow METAMICROBES {
         false
     )
     ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions.first())
+    
+    //
+    // Module: Run Samtools flagstat
+    //
+    SAMTOOLS_FLAGSTAT (
+        BWAMEM2_MEM.out.bam
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_FLAGSTAT.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(SAMTOOLS_FLAGSTAT.out.flagstat.collect{it[1]})
 
     //
     // MODULE: Run Samtools fastq on BWA-MEM2 output
