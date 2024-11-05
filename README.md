@@ -47,6 +47,12 @@ To use MetaMicrobes on your machine, follow the steps below:
     CONTROL_1, BR_PVP_0705_R1.fastq.gz, BR_PVP_0705_R2.fastq.gz
     ```
     Each row represents a pair of fastq files.
+> [!TIP]
+> You can use the ["samplesheeter.py"](https://github.com/BirgitRijvers/EMC-CanMic/blob/master/samplesheeter.py) script that comes with this repo, a small command line tool that prepares the samplesheet for you based on a supplied data directory.
+
+> [!TIP]
+> If you don't have data available yet, or you want to test the pipeline first on a small dataset, use the [data that comes with this repo]((https://github.com/BirgitRijvers/EMC-CanMic/blob/master/testdata). This data is subsampled from 3 RNA-seq samples with varying host contents, created by Marques *et al.*.
+   <!-- TODO nf-core: Add documentation about samplesheeter and testdata -->
 5. Now, you can run the MetaMicrobes pipeline using:
      <!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
      Explain what rows and columns represent -->
