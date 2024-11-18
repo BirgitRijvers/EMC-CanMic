@@ -37,7 +37,7 @@ To use MetaMicrobes on your machine, follow the steps below:
     `samplesheet.csv`:
     ```csv
     sample,fastq_1,fastq_2
-    CONTROL_1, BR_PVP_0705_R1.fastq.gz, BR_PVP_0705_R2.fastq.gz
+    CONTROL_1,BR_PVP_0705_R1.fastq.gz,BR_PVP_0705_R2.fastq.gz
     ```
     Each row represents a pair of fastq files.
 > [!TIP]
