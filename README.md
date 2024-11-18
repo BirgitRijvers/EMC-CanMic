@@ -16,14 +16,15 @@ And include the following:
 2. Filter out reads mapping to a reference genome ([`BWA-MEM2`](https://github.com/bwa-mem2/bwa-mem2) and [`Samtools`](https://www.htslib.org/doc/samtools-view.html))
 3. Summarize mapping statistics ([`Samtools`](https://www.htslib.org/doc/samtools-flagstat.html))
 4. Convert SAM file to FASTQ ([`Samtools`](https://www.htslib.org/doc/samtools-fasta.html))
-5. Taxonomic classification ([`Kraken2`](https://github.com/DerrickWood/kraken2))
-6. Visualize Kraken2 output with Krona ([`KrakenTools`](https://github.com/jenniferlu717/KrakenTools) and [`Krona`](https://github.com/marbl/Krona))
-7. Re-estimation of microbial abundances ([`Bracken`](https://github.com/jenniferlu717/Bracken))
-8. Convert Kraken2 and Bracken outputs to BIOM ([`Kraken-biom`](https://github.com/smdabdoub/kraken-biom))
-9. Decontaminate based on a blacklist and whitelist ([`QIIME2`](https://qiime2.org/))
-10. Visualize microbial profiles with barcharts and heatmaps ([`QIIME2`](https://qiime2.org/))
-11. Assess microbial alpha and beta diversity ([`QIIME2`](https://qiime2.org/))
-12. Generate report with quality metrics and used tools ([`MultiQC`](https://github.com/MultiQC/MultiQC))
+5. Detect AMR genes based on Hidden Markov Models ([`fARGene`](https://github.com/fannyhb/fargene))
+6. Taxonomic classification ([`Kraken2`](https://github.com/DerrickWood/kraken2))
+7. Visualize Kraken2 output with Krona ([`KrakenTools`](https://github.com/jenniferlu717/KrakenTools) and [`Krona`](https://github.com/marbl/Krona))
+8. Re-estimation of microbial abundances ([`Bracken`](https://github.com/jenniferlu717/Bracken))
+9. Convert Kraken2 and Bracken outputs to BIOM ([`Kraken-biom`](https://github.com/smdabdoub/kraken-biom))
+10. Decontaminate based on a blacklist and whitelist ([`QIIME2`](https://qiime2.org/))
+11. Visualize microbial profiles with barcharts and heatmaps ([`QIIME2`](https://qiime2.org/))
+12. Assess microbial alpha and beta diversity ([`QIIME2`](https://qiime2.org/))
+13. Generate report with quality metrics and used tools ([`MultiQC`](https://github.com/MultiQC/MultiQC))
 
 ## Usage
 To use MetaMicrobes on your machine, follow the steps below:
@@ -40,10 +41,10 @@ To use MetaMicrobes on your machine, follow the steps below:
     ```
     Each row represents a pair of fastq files.
 > [!TIP]
-> If you don't have data available yet, or you want to test the pipeline first on a small dataset, use the [data that comes with this repo](https://github.com/BirgitRijvers/EMC-CanMic/blob/master/testdata). This data is subsampled from 3 RNA-seq samples with varying host contents, created by Marques *et al.* .
+> If you don't have data available yet, or you want to test the pipeline first on a small dataset, use the [data that comes with this repo](https://github.com/BirgitRijvers/EMC-MetaMicrobes/tree/master/testdata). This data is subsampled from 3 RNA-seq samples with varying host contents, created by Marques *et al.* .
 
 > [!TIP]
-> You can use the ["samplesheeter.py"](https://github.com/BirgitRijvers/EMC-CanMic/blob/master/samplesheeter.py) script that comes with this repo, a small command line tool that prepares the samplesheet for you based on a supplied data directory.
+> You can use the ["samplesheeter.py"](https://github.com/BirgitRijvers/EMC-MetaMicrobes/blob/master/samplesheeter.py) script that comes with this repo, a small command line tool that prepares the samplesheet for you based on a supplied data directory.
 
    <!-- TODO nf-core: Add documentation about samplesheeter and testdata -->
 4. Download a FASTA file containing the reference genome you want to use for host depletion, for example [GRCh38](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.26/). 
