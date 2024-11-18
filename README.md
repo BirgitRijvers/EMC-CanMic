@@ -5,8 +5,6 @@
 As input it requires a samplesheet with paths to paired-end, short-read, compressed FASTQ files. The pipeline performs quality control and trimming on the reads, filters out reads mapping to a specified host reference genome and taxonomically classifies the remaining reads. In addition it also detects antimicrobial resistance genes with two different approaches. As output, you receive all intermediate outputs as well as a BIOM file with the classifications and a MultiQC report of the QC metrics and tools used.
 
 An overview of the steps implemented in MetaMicrobes are shown in the figure below:
-![Metrochart_CanMic_overview-horizontal_mqc_amr_q2 drawio](https://github.com/user-attachments/assets/fb38450d-6851-4360-9dc3-0616a3eac8bd)
-
 
 <!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
      workflows use the "tube map" design for that. See https://nf-co.re/docs/contributing/design_guidelines#examples for examples.   -->
@@ -63,8 +61,8 @@ To use MetaMicrobes on your machine, follow the steps below:
        --outdir <OUTDIR> \
        --fasta <path/to/reference_genome_fasta>
     ```
-   > [!TIP]
-   > Save time by changing the default "null" values in "nextflow.config" to the paths you will use most often. Values in this file will be overwritten by the values specified in the command.
+> [!TIP]
+> Save time by changing the default "null" values in "nextflow.config" to the paths you will use most often. Values in this file will be overwritten by the values specified in the command.
 
    If you have a pre-built bwa-mem2 index or Kraken2/Bracken database, use a command like this:
     ```bash
