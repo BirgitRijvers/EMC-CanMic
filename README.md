@@ -29,7 +29,7 @@ And include the following:
 To use MetaMicrobes on your machine, follow the steps below:
 1. Make sure you have correctly set-up Nextflow and it's dependencies
 > [!NOTE]
-> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
+> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. 
 
 2. Clone this GitHub repository
 3. Prepare a samplesheet like the example below:
@@ -39,45 +39,46 @@ To use MetaMicrobes on your machine, follow the steps below:
     CONTROL_1, BR_PVP_0705_R1.fastq.gz, BR_PVP_0705_R2.fastq.gz
     ```
     Each row represents a pair of fastq files.
-   > [!TIP]
-   > You can use the ["samplesheeter.py"](https://github.com/BirgitRijvers/EMC-CanMic/blob/master/samplesheeter.py) script that comes with this repo, a small command line tool that prepares the samplesheet for you based on a supplied data directory.
+> [!TIP]
+> If you don't have data available yet, or you want to test the pipeline first on a small dataset, use the [data that comes with this repo](https://github.com/BirgitRijvers/EMC-CanMic/blob/master/testdata). This data is subsampled from 3 RNA-seq samples with varying host contents, created by Marques *et al.* .
 
-   > [!TIP]
-   > If you don't have data available yet, or you want to test the pipeline first on a small dataset, use the [data that comes with this repo](https://github.com/BirgitRijvers/EMC-CanMic/blob/master/testdata). This data is subsampled from 3 RNA-seq samples with varying host contents, created by Marques *et al.*.
-      <!-- TODO nf-core: Add documentation about samplesheeter and testdata -->
+> [!TIP]
+> You can use the ["samplesheeter.py"](https://github.com/BirgitRijvers/EMC-CanMic/blob/master/samplesheeter.py) script that comes with this repo, a small command line tool that prepares the samplesheet for you based on a supplied data directory.
+
+   <!-- TODO nf-core: Add documentation about samplesheeter and testdata -->
 4. Download a FASTA file containing the reference genome you want to use for host depletion, for example [GRCh38](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.26/). 
 
-   Optionally, create a bwa-mem2 index of this reference file and built your preferred Kraken2/Bracken database. If you don't supply these to the pipeline, MetaMicrobes will index your reference genome for you and build the Kraken2/Bracken standard database. 
+   Optionally, create a BWA-MEM2 index of this reference file and built your preferred Kraken2/Bracken database. If you don't supply these to the pipeline, MetaMicrobes will index your reference genome for you and build the Kraken2/Bracken standard database. 
 
 4. Now, you can run the MetaMicrobes pipeline using:
      <!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
      Explain what rows and columns represent -->
    
     ```bash
-    nextflow run emc-cancermicro \
+    nextflow run <path/to/EMC-MetaMicrobes/directory/> \
        -profile <docker/singularity/conda/.../institute> \
        --input samplesheet.csv \
        --outdir <OUTDIR> \
-       --fasta <path/to/reference_genome_fasta> \
+       --fasta <path/to/reference_genome_fasta>
     ```
    > [!TIP]
    > Save time by changing the default "null" values in "nextflow.config" to the paths you will use most often. Values in this file will be overwritten by the values specified in the command.
 
    If you have a pre-built bwa-mem2 index or Kraken2/Bracken database, use a command like this:
     ```bash
-    nextflow run emc-cancermicro \
+    nextflow run <path/to/EMC-MetaMicrobes/directory/> \
        -profile <docker/singularity/conda/.../institute> \
        --input samplesheet.csv \
        --outdir <OUTDIR> \
        --fasta <path/to/reference_genome_fasta> \
        --bwamem2_index <path/to/bwa_mem2_index> \
        --kraken2_db <path/to/kraken2_db> \
-       --bracken_db <path/to/bracken_db> \
+       --bracken_db <path/to/bracken_db>
     ```  
 
     If you want to change anything related to the QIIME2 downstream analysis or fARGene, use a command like this:
       ```bash
-    nextflow run emc-cancermicro \
+    nextflow run <path/to/EMC-MetaMicrobes/directory/> \
        -profile <docker/singularity/conda/.../institute> \
        --input samplesheet.csv \
        --outdir <OUTDIR> \
@@ -89,7 +90,7 @@ To use MetaMicrobes on your machine, follow the steps below:
        --blacklist <path/to/custom_blacklist> \
        --sampling_dept 1000 \
        --metadata <path/to/metadata> \
-       --fargene_hmmmodel "class_b_1_2" \
+       --fargene_hmmmodel "class_b_1_2"
     ```  
 
 <!-- > [!WARNING]
@@ -111,7 +112,7 @@ If you would like to contribute to this pipeline, please see the [contributing g
 
 <!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
 
-An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
+A list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
 This pipeline uses code and infrastructure developed and maintained by the [nf-core](https://nf-co.re) community, reused here under the [MIT license](https://github.com/nf-core/tools/blob/master/LICENSE).
 
