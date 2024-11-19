@@ -1,10 +1,10 @@
 ## Introduction
 
-**EMC/metamicrobes** is a bioinformatics pipeline that analyzes microbial signatures and AMR genes in metagenomic or metatranscriptomic data. 
+**EMC/MetaMicrobes** is a bioinformatics pipeline that analyzes microbial signatures and AMR genes in metagenomic or metatranscriptomic data. 
 
 As input it requires a samplesheet with paths to paired-end, short-read, compressed FASTQ files. The pipeline performs quality control and trimming on the reads, filters out reads mapping to a specified host reference genome and taxonomically classifies the remaining reads. In addition it also detects antimicrobial resistance genes with two different approaches. As output, you receive all intermediate outputs as well as a BIOM file with the classifications and a MultiQC report of the QC metrics and tools used.
 
-An overview of the steps implemented in MetaMicrobes are shown in the figure below:
+An overview of the steps implemented in MetaMicrobes is shown in the figure below:
 
 <!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
      workflows use the "tube map" design for that. See https://nf-co.re/docs/contributing/design_guidelines#examples for examples.   -->

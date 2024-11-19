@@ -13,10 +13,10 @@ process SAMTOOLS_FASTQ_NOGZIP {
 
     output:
     tuple val(meta), path("*_{1,2}.fastq")      , optional:true, emit: fastq
-    tuple val(meta), path("*_interleaved.fastq")   , optional:true, emit: interleaved
+    tuple val(meta), path("*_interleaved.fastq"), optional:true, emit: interleaved
     tuple val(meta), path("*_singleton.fastq")  , optional:true, emit: singleton
     tuple val(meta), path("*_other.fastq")      , optional:true, emit: other
-    path  "versions.yml"                           , emit: versions
+    path  "versions.yml"                        , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
