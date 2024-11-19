@@ -5,6 +5,7 @@
 As input it requires a samplesheet with paths to paired-end, short-read, compressed FASTQ files. The pipeline performs quality control and trimming on the reads, filters out reads mapping to a specified host reference genome and taxonomically classifies the remaining reads. In addition it also detects antimicrobial resistance genes with two different approaches. As output, you receive all intermediate outputs as well as a BIOM file with the classifications and a MultiQC report of the QC metrics and tools used.
 
 An overview of the steps implemented in MetaMicrobes are shown in the figure below:
+![Metrochart_CanMic_overview-horizontal_mqc_amr_q2 drawio](https://github.com/user-attachments/assets/cf6de692-4f4d-4618-af05-e669a4cab4c0)
 
 <!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
      workflows use the "tube map" design for that. See https://nf-co.re/docs/contributing/design_guidelines#examples for examples.   -->
