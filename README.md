@@ -45,7 +45,7 @@ To use MetaMicrobes on your machine, follow the steps below:
 > If you don't have data available yet, or you want to test the pipeline first on a small dataset, use the [data that comes with this repo](https://github.com/BirgitRijvers/EMC-MetaMicrobes/tree/master/testdata). This data is subsampled from 3 RNA-seq samples with varying host contents, created by Marques *et al.* .
 
 > [!TIP]
-> You can use the ["samplesheeter.py"](https://github.com/BirgitRijvers/EMC-MetaMicrobes/blob/master/samplesheeter.py) script that comes with this repo, a small command line tool that prepares the samplesheet for you based on a supplied data directory.
+> You can use the ["samplesheeter.py"](https://github.com/BirgitRijvers/EMC-MetaMicrobes/tree/master/samplesheeter) script that comes with this repo, a small command line tool that prepares the samplesheet for you based on a supplied data directory.
 
    <!-- TODO nf-core: Add documentation about samplesheeter and testdata -->
 4. Download a FASTA file containing the reference genome you want to use for host depletion, for example [GRCh38](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.26/). 
