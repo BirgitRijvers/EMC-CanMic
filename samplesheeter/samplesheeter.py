@@ -46,17 +46,21 @@ def create_samplesheet():
     # File extension
     file_extension = args.file_extension
 
-    # Get a list of all FASTQ files in the directory
+    # Get a list of all FASTQ files (with user specified extension) in the directory
     fastq_files = [f for f in os.listdir(data_dir) if f.endswith(f"{file_extension}")]
-    # Group the FASTQ files by sample
+    # Dictionary to store samples
     samples = {}
 
     # If the FASTQ files are paired-end
     if paired:
         # Loop through files and group by sample
         for filename in fastq_files:
+            # Skip UMI files if present (_R3 suffix)
+            if "_R3" in filename:
+                continue
             parts = filename.split("_")
-            sample = "_".join(parts[:-1])  # Join all parts except the last one (R1 or R2)
+            # Join all parts except the last one (R1 or R2)
+            sample = "_".join(parts[:-1])
             if sample not in samples:
                 samples[sample] = []
             samples[sample].append(os.path.abspath(os.path.join(data_dir, filename)))
