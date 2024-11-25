@@ -23,7 +23,7 @@ include { KRAKENTOOLS_KREPORT2KRONA as KRAKENTOOLS_BRACKEN_KREPORT2KRONA } from 
 include { KRONA_KTIMPORTTEXT as KRONA_BRACKEN_KTIMPORTTEXT               } from '../modules/nf-core/krona/ktimporttext/main'
 include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_BR                         } from '../modules/local/krakenbiom/main'
 // include { FARGENE                } from '../modules/nf-core/fargene/main'
-include { HAMRONIZATION_FARGENE  } from '../modules/nf-core/hamronization/fargene/main'
+// include { HAMRONIZATION_FARGENE  } from '../modules/nf-core/hamronization/fargene/main'
 include { UNTAR                  } from '../modules/nf-core/untar/main'
 include { SEQKIT_FQ2FA           } from '../modules/nf-core/seqkit/fq2fa/main'
 include { RGI_CARDANNOTATION     } from '../modules/nf-core/rgi/cardannotation/main.nf'
