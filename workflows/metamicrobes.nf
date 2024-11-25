@@ -22,7 +22,8 @@ include { BRACKEN_BRACKEN        } from '../modules/nf-core/bracken/bracken/main
 include { KRAKENTOOLS_KREPORT2KRONA as KRAKENTOOLS_BRACKEN_KREPORT2KRONA } from '../modules/nf-core/krakentools/kreport2krona/main'
 include { KRONA_KTIMPORTTEXT as KRONA_BRACKEN_KTIMPORTTEXT               } from '../modules/nf-core/krona/ktimporttext/main'
 include { KRAKENBIOM_KRAKENBIOM as KRAKENBIOM_BR                         } from '../modules/local/krakenbiom/main'
-include { FARGENE                } from '../modules/nf-core/fargene/main'
+// include { FARGENE                } from '../modules/nf-core/fargene/main'
+include { HAMRONIZATION_FARGENE  } from '../modules/nf-core/hamronization/fargene/main'
 include { UNTAR                  } from '../modules/nf-core/untar/main'
 include { SEQKIT_FQ2FA           } from '../modules/nf-core/seqkit/fq2fa/main'
 include { RGI_CARDANNOTATION     } from '../modules/nf-core/rgi/cardannotation/main.nf'
@@ -134,14 +135,14 @@ workflow METAMICROBES {
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
 
-    //
-    // MODULE: Run Samtools fastq no gzip on BWA-MEM2 output, for fARGene
-    //
-    SAMTOOLS_FASTQ_NOGZIP (
-        BWAMEM2_MEM.out.bam,
-        false
-    )
-    ch_versions = ch_versions.mix(SAMTOOLS_FASTQ_NOGZIP.out.versions)
+    // //
+    // // MODULE: Run Samtools fastq no gzip on BWA-MEM2 output, for fARGene
+    // //
+    // SAMTOOLS_FASTQ_NOGZIP (
+    //     BWAMEM2_MEM.out.bam,
+    //     false
+    // )
+    // ch_versions = ch_versions.mix(SAMTOOLS_FASTQ_NOGZIP.out.versions)
 
     // //
     // // MODULE: Run Seqkit FQ2FA, needed for RGI
@@ -180,30 +181,54 @@ workflow METAMICROBES {
     // )
     // ch_versions = ch_versions.mix(RGI_MAIN.out.versions)
 
-    // Create channel with fARGene model classes
-    ch_fargene_classes = Channel.fromList(params.fargene_hmmmodel.tokenize(','))
+    // // Create channel with fARGene model classes
+    // ch_fargene_classes = Channel.fromList(params.fargene_hmmmodel.tokenize(','))
 
-    // Format input for fARGene with uncompressed reads
-    ch_fargene_input = SAMTOOLS_FASTQ_NOGZIP.out.fastq 
-                        .combine(ch_fargene_classes)
-                        .map {
-                            meta, fastas, hmm_class ->
-                                def meta_new = meta.clone()
-                                meta_new['hmm_class'] = hmm_class
-                            [ meta_new, fastas, hmm_class ]
-                        }
-                        .multiMap {
-                            fastas: [ it[0], it[1] ]
-                            hmmclass: it[2]
-                        }
-    // 
-    // MODULE: Run FARGene
-    //
-    FARGENE (
-        ch_fargene_input.fastas, 
-        ch_fargene_input.hmmclass
-    )
-    ch_versions = ch_versions.mix(FARGENE.out.versions)
+    // // Format input for fARGene with uncompressed reads
+    // ch_fargene_input = SAMTOOLS_FASTQ_NOGZIP.out.fastq 
+    //                     .combine(ch_fargene_classes)
+    //                     .map {
+    //                         meta, fastas, hmm_class ->
+    //                             def meta_new = meta.clone()
+    //                             meta_new['hmm_class'] = hmm_class
+    //                         [ meta_new, fastas, hmm_class ]
+    //                     }
+    //                     .multiMap {
+    //                         fastas: [ it[0], it[1] ]
+    //                         hmmclass: it[2]
+    //                     }
+    // // 
+    // // MODULE: Run FARGene
+    // //
+    // FARGENE (
+    //     ch_fargene_input.fastas, 
+    //     ch_fargene_input.hmmclass
+    // )
+    // ch_versions = ch_versions.mix(FARGENE.out.versions)
+    // FARGENE.out.hmm_genes.view()
+    
+    // //
+    // // MODULE: Run Hamronization on FARGene output
+    // //
+    // HAMRONIZATION_FARGENE (
+    //     FARGENE.out.hmm_genes.transpose(),
+    //     "tsv",
+    //     "0.1",
+    //     "0.1"
+    // )
+    // ch_versions = ch_versions.mix(HAMRONIZATION_FARGENE.out.versions)
+    // // ch_input_to_hamronization_summarize = ch_input_to_hamronization_summarize.mix(HAMRONIZATION_FARGENE.out.tsv)
+
+    // //
+    // // MODULE: Run Hamronization on FARGene output
+    // //
+    // HAMRONIZATION_FARGENE (
+    //     FARGENE.out.txt,
+    //     "tsv",
+    //     "0.1",
+    //     "0.1"
+    // )
+    // ch_versions = ch_versions.mix(HAMRONIZATION_FARGENE.out.versions)
     
     // Check if Kraken2 database is provided
     if (!params.kraken2_db) {
