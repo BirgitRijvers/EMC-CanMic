@@ -267,11 +267,9 @@
         }
     ],
     "properties": {
-        "bwamem2_index": {
-            "type": "string"
-        },
         "kraken2_db": {
-            "type": "string"
+            "type": "string",
+            "default": "/mnt/SCS/data_2/Users/Birgit/db_index/kraken2/standard/"
         },
         "qiime2": {
             "type": "boolean",
@@ -279,26 +277,42 @@
         },
         "whitelist": {
             "type": "string",
-            "default": "/home/birgit/programs/EMC-metamicrobes/whitelist.csv"
+            "default": "/home/birgit/programs/emc-cancermicro/whitelist.csv"
         },
         "blacklist": {
             "type": "string",
-            "default": "/home/birgit/programs/EMC-metamicrobes/blacklist.csv"
+            "default": "/home/birgit/programs/emc-cancermicro/blacklist.csv"
         },
         "sampling_depth": {
             "type": "integer",
             "default": 5000
         },
         "metadata": {
-            "type": "string",
-            "default": "/home/birgit/metadata_all_CRC.tsv"
+            "type": "string"
         },
         "bracken_db": {
-            "type": "string"
+            "type": "string",
+            "default": "/mnt/SCS/data_2/Users/Birgit/db_index/kraken2/standard/"
         },
         "fargene_hmmmodel": {
             "type": "string",
             "default": "class_a,class_b_1_2,class_b_3,class_c,class_d_1,class_d_2,qnr,tet_efflux,tet_rpg,tet_enzyme"
+        },
+        "fasta_1": {
+            "type": "string",
+            "default": "/mnt/SCS/data_2/Users/Birgit/GRCh38/GRCh38.fna.gz"
+        },
+        "fasta_2": {
+            "type": "string",
+            "default": "/mnt/SCS/data_2/Users/Birgit/mouse_ref/GCF_000001635.27_GRCm39_genomic.fna.gz"
+        },
+        "bwamem2_index_1": {
+            "type": "string",
+            "default": "/mnt/SCS/data_2/Users/Birgit/db_index/bwa-mem2/"
+        },
+        "bwamem2_index_2": {
+            "type": "string",
+            "default": "/mnt/SCS/data_2/Users/Birgit/db_index/bwamem2_mouse/"
         }
     }
 }

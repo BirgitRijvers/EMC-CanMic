@@ -7,11 +7,15 @@
 include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
-include { BWAMEM2_MEM            } from '../modules/nf-core/bwamem2/mem/main'
-include { BWAMEM2_INDEX          } from '../modules/nf-core/bwamem2/index/main'
-include { SAMTOOLS_FASTQ         } from '../modules/nf-core/samtools/fastq/main'
+include { BWAMEM2_INDEX as BWAMEM2_INDEX_1          } from '../modules/nf-core/bwamem2/index/main'
+include { BWAMEM2_INDEX as BWAMEM2_INDEX_2          } from '../modules/nf-core/bwamem2/index/main'
+include { BWAMEM2_MEM as BWAMEM2_MEM_1            } from '../modules/nf-core/bwamem2/mem/main'
+include { BWAMEM2_MEM as BWAMEM2_MEM_2            } from '../modules/nf-core/bwamem2/mem/main'
+include { SAMTOOLS_FASTQ as SAMTOOLS_FASTQ_1         } from '../modules/nf-core/samtools/fastq/main'
+include { SAMTOOLS_FASTQ as SAMTOOLS_FASTQ_2         } from '../modules/nf-core/samtools/fastq/main'
+include { SAMTOOLS_FLAGSTAT as SAMTOOLS_FLAGSTAT_1      } from '../modules/local/samtools/flagstat/main'
+include { SAMTOOLS_FLAGSTAT as SAMTOOLS_FLAGSTAT_2      } from '../modules/local/samtools/flagstat/main'
 include { SAMTOOLS_FASTQ_NOGZIP  } from '../modules/local/samtools/fastqnogzip/main'
-include { SAMTOOLS_FLAGSTAT      } from '../modules/local/samtools/flagstat/main'
 include { KRAKEN2_BUILDSTANDARD  } from '../modules/nf-core/kraken2/buildstandard/main'
 include { KRAKEN2_KRAKEN2        } from '../modules/nf-core/kraken2/kraken2/main'
 include { KRAKENTOOLS_KREPORT2KRONA as KRAKENTOOLS_KRAKEN2_KREPORT2KRONA } from '../modules/nf-core/krakentools/kreport2krona/main'
@@ -45,8 +49,13 @@ include { QIIME2 as QIIME2_BRACKEN                            } from '../subwork
     VALIDATE PARAMS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-if(params.fasta){
-    ch_fasta = Channel.fromPath(params.fasta, checkIfExists: true).collect()
+if(params.fasta_1){
+    ch_fasta_1 = Channel.fromPath(params.fasta_1, checkIfExists: true).collect()
+        .map{ it -> [[id:it[0].getSimpleName()], it[0]]}
+}
+
+if(params.fasta_2){
+    ch_fasta_2 = Channel.fromPath(params.fasta_2, checkIfExists: true).collect()
         .map{ it -> [[id:it[0].getSimpleName()], it[0]]}
 }
 
@@ -88,57 +97,103 @@ workflow METAMICROBES {
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]})
     ch_versions = ch_versions.mix(FASTP.out.versions)
 
-    // Check if BWA-MEM2 index is provided
-    if (!params.bwamem2_index) {
+    // Check if BWA-MEM2 1 index is provided
+    if (!params.bwamem2_index_1) {
         //
-        // MODULE: Run BWA-MEM2 index on provided fasta
+        // MODULE: Run BWA-MEM2 1 index on provided fasta
         //
-        BWAMEM2_INDEX (
-            ch_fasta
+        BWAMEM2_INDEX_1 (
+            ch_fasta_1
         )
-        ch_versions = ch_versions.mix(BWAMEM2_INDEX.out.versions)
-        ch_bwamem2_index = BWAMEM2_INDEX.out.index
+        ch_versions = ch_versions.mix(BWAMEM2_INDEX_1.out.versions)
+        ch_bwamem2_index = BWAMEM2_INDEX_1.out.index
     }
     else {
-        // Use provided BWA-MEM2 index
-        ch_bwamem2_index = Channel.value([[id:'input_genome_index'], params.bwamem2_index])
+        // Use provided BWA-MEM2 1 index
+        ch_bwamem2_index_1 = Channel.value([[id:'input_genome_index'], params.bwamem2_index_1])
     }
 
     //
-    // MODULE: Run BWA-MEM2
+    // MODULE: Run BWA-MEM2 1
     //
-    // Extra args for BWA-MEM2 are passed in 'modules.config' to save only unmapped readpairs
-    BWAMEM2_MEM (
+    // Extra args for BWA-MEM2 1 are passed in 'modules.config' to save only unmapped readpairs
+    BWAMEM2_MEM_1 (
         FASTP.out.reads,
-        ch_bwamem2_index,
-        ch_fasta,
+        ch_bwamem2_index_1,
+        ch_fasta_1,
         false
     )
-    ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions.first())
+    ch_versions = ch_versions.mix(BWAMEM2_MEM_1.out.versions.first())
+
+    //
+    // Module: Run Samtools flagstat 1 on BWA-MEM2 1 output
+    //
+    SAMTOOLS_FLAGSTAT_1 (
+        BWAMEM2_MEM_1.out.bam
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_FLAGSTAT_1.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(SAMTOOLS_FLAGSTAT_1.out.flagstat.collect{it[1]})
+
+    //
+    // MODULE: Run Samtools fastq 1 on BWA-MEM2 1 output
+    //
+    SAMTOOLS_FASTQ_1 (
+        BWAMEM2_MEM_1.out.bam,
+        false
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_FASTQ_1.out.versions)    
+
+    // Check if BWA-MEM2 2 index is provided
+    if (!params.bwamem2_index_2) {
+        //
+        // MODULE: Run BWA-MEM2 2 index on provided fasta
+        //
+        BWAMEM2_INDEX_2 (
+            ch_fasta_2
+        )
+        ch_versions = ch_versions.mix(BWAMEM2_INDEX_2.out.versions)
+        ch_bwamem2_index = BWAMEM2_INDEX_2.out.index
+    }
+    else {
+        // Use provided BWA-MEM2 2 index
+        ch_bwamem2_index_2 = Channel.value([[id:'input_genome_index'], params.bwamem2_index_2])
+    }
+
+    //
+    // MODULE: Run BWA-MEM2 2
+    //
+    // Extra args for BWA-MEM2 2 are passed in 'modules.config' to save only unmapped readpairs
+    BWAMEM2_MEM_2 (
+        SAMTOOLS_FASTQ_1.out.fastq,
+        ch_bwamem2_index_2,
+        ch_fasta_2,
+        false
+    )
+    ch_versions = ch_versions.mix(BWAMEM2_MEM_2.out.versions.first())
     
     //
-    // Module: Run Samtools flagstat
+    // Module: Run Samtools flagstat on BWA-MEM2 2 output
     //
-    SAMTOOLS_FLAGSTAT (
-        BWAMEM2_MEM.out.bam
+    SAMTOOLS_FLAGSTAT_2 (
+        BWAMEM2_MEM_2.out.bam
     )
-    ch_versions = ch_versions.mix(SAMTOOLS_FLAGSTAT.out.versions)
-    ch_multiqc_files = ch_multiqc_files.mix(SAMTOOLS_FLAGSTAT.out.flagstat.collect{it[1]})
+    ch_versions = ch_versions.mix(SAMTOOLS_FLAGSTAT_2.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(SAMTOOLS_FLAGSTAT_2.out.flagstat.collect{it[1]})
 
     //
     // MODULE: Run Samtools fastq on BWA-MEM2 output
     //
-    SAMTOOLS_FASTQ (
-        BWAMEM2_MEM.out.bam,
+    SAMTOOLS_FASTQ_2 (
+        BWAMEM2_MEM_2.out.bam,
         false
     )
-    ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
+    ch_versions = ch_versions.mix(SAMTOOLS_FASTQ_2.out.versions)
 
     //
-    // MODULE: Run Samtools fastq no gzip on BWA-MEM2 output, for fARGene
+    // MODULE: Run Samtools fastq no gzip on BWA-MEM2 2 output, for fARGene
     //
     SAMTOOLS_FASTQ_NOGZIP (
-        BWAMEM2_MEM.out.bam,
+        BWAMEM2_MEM_2.out.bam,
         false
     )
     ch_versions = ch_versions.mix(SAMTOOLS_FASTQ_NOGZIP.out.versions)
@@ -225,7 +280,7 @@ workflow METAMICROBES {
     // MODULE: Run Kraken2 (Confidence set to --confidence 0.05 in modules.config)
     //
     KRAKEN2_KRAKEN2 (
-        SAMTOOLS_FASTQ.out.fastq,
+        SAMTOOLS_FASTQ_2.out.fastq,
         ch_kraken2_db,
         false,
         false
